@@ -1,0 +1,17 @@
+* text=auto
+
+*.sh   eol=lf
+*.md   eol=lf
+*.txt  eol=lf
+*.go   eol=lf
+*.html eol=lf
+*.css  eol=lf
+*.js   eol=lf
+*.json eol=lf
+*.mod  eol=lf
+*.bat  eol=lf
+
+LICENSE        eol=lf
+.gitignore     eol=lf
+.gitattributes eol=lf
+.editorconfig  eol=lf
