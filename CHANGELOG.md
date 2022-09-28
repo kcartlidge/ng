@@ -5,3 +5,4 @@
   - Build scripts
     - Initial builds
   - Argument display and parsing
+  - Scan Postgres

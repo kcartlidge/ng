@@ -1,10 +1,8 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
-	pgx "github.com/jackc/pgx/v4/pgxpool"
 	"kcartlidge/ng/argsParser"
 	"os"
 )
@@ -50,11 +48,12 @@ func main() {
 	if !ok {
 		check(errors.New("environment variable missing or unreadable"))
 	}
-	fmt.Println("Obtained connection string from environment - pinging")
-	db, err := pgx.Connect(context.Background(), connectionString)
+	fmt.Println("Obtained connection string from environment")
+
+	// Scan the database to create a schema model.
+	s := NewScanner(connectionString, schema)
+	err := s.ScanPostgresDatabase()
 	check(err)
-	defer db.Close()
-	check(db.Ping(context.Background()))
 
 	// Done.
 	fmt.Println("Done")
