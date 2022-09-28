@@ -1,7 +1,10 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	pgx "github.com/jackc/pgx/v4/pgxpool"
 	"kcartlidge/ng/argsParser"
 	"os"
 )
@@ -15,7 +18,7 @@ func main() {
 
 	// Command arguments.
 	var a = argsParser.New(os.Args)
-	a.Example = "-w -env DB_CONNSTR -schema example -folder ~/example/repo"
+	a.Example = "-w -folder ~/example/repo -module kcartlidge/app/data -env DB_CONNSTR -schema example"
 	a.AddFlag("w", false, false, "overwrite any existing destination folder")
 	a.AddValue("env", false, "DB_CONNSTR", "connection string environment variable")
 	a.AddValue("schema", false, "public", "the Postgres database schema to scan")
@@ -41,4 +44,29 @@ func main() {
 	fmt.Println("Go module name       :", module)
 	fmt.Println("Overwrite existing?  :", overwrite)
 	fmt.Println()
+
+	// Fetch the connection string from the env, and test it.
+	connectionString, ok := os.LookupEnv(env)
+	if !ok {
+		check(errors.New("environment variable missing or unreadable"))
+	}
+	fmt.Println("Obtained connection string from environment - pinging")
+	db, err := pgx.Connect(context.Background(), connectionString)
+	check(err)
+	defer db.Close()
+	check(db.Ping(context.Background()))
+
+	// Done.
+	fmt.Println("Done")
+}
+
+// If there is an error, display it and quit.
+func check(err error) {
+	if err != nil {
+		fmt.Println()
+		fmt.Println("ERROR")
+		fmt.Println(err.Error())
+		fmt.Println()
+		os.Exit(1)
+	}
 }
