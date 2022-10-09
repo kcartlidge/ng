@@ -9,3 +9,4 @@
   - Write output
     - Create folder
     - JSON dump file
+    - Create output Go module

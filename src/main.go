@@ -57,7 +57,7 @@ func main() {
 
 	// Create the output.
 	fmt.Println()
-	w := NewWriter(folder, s.Schema)
+	w := NewWriter(folder, module, s.Schema)
 	exists, err := Exists(w.topFolder)
 	check(err)
 	if !exists || overwrite {
