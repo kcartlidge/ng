@@ -1,0 +1,84 @@
+{{- define "entities" -}}
+package entities
+
+import (
+    "net/http"
+{{ $usesTime := false -}}
+{{- range .Columns }}{{ if eq .DataType "*time.Time" }}{{- $usesTime = true -}}{{- end }}{{- end }}
+{{- if $usesTime }}
+    "time"
+{{ end }}
+	pgx "github.com/jackc/pgx/v4"
+
+	"{{ ModuleName }}/support"
+)
+
+{{ TableComment . -}}
+type {{ .CodeName }} struct {
+{{- range .Columns }}
+    {{ ColumnComment . -}}
+    {{ .CodeName }} {{ .DataType }} `sql:"{{ .ColumnName }}" json:"{{ .JsonName }}" display:"{{ .DisplayName }}" slug:"{{ .SlugName }}"`
+{{ end }}
+}
+
+// New{{ .CodeName }} gets a new {{ .CodeName }}.
+func New{{ .CodeName }}() *{{ .CodeName }} {
+    d := {{ .CodeName }}{}
+    return &d
+}
+
+
+// New{{ .CodeName }}FromRows gets a new '{{ .TableName }}' row as a {{ .CodeName }}.
+// You must have already called '.Next()' on the rows.
+func New{{ .CodeName }}FromRows(rows pgx.Rows) (*{{ .CodeName }}, error) {
+    d := {{ .CodeName }}{}
+    err := rows.Scan({{ toCodeNameListCSV . "&d." }})
+    return &d, err
+}
+
+// New{{ .CodeName }}FromPOST extracts a {{ .DisplayName }} from a POST request.
+//
+// This is intended mainly for CRUD admin screens.
+// It can obviously be used for any purpose, but there are over-posting risks.
+//
+// Fields are expected to be named as per their slug.
+// For example, 'CreatedAt' should be 'created-at' in the POST form data.
+//
+// The returned `[]string` contains any validation issues.
+// These are distinct from actual errors.
+func New{{ .CodeName }}FromPOST(r *http.Request) (*{{ .CodeName }}, []string, []error) {
+	issues := []string{}
+    errs := []error{}
+    d := {{ .CodeName }}{}
+    err := r.ParseForm()
+    if err != nil {
+        errs = append(errs, err)
+    } else {
+{{- range .Columns }}
+{{- if eq .DataType "*time.Time" }}
+        d.{{ .CodeName }} = support.DateTimeFromPOST(r, "{{ .SlugName }}", errs)
+{{- else }}
+        d.{{ .CodeName }} = support.{{ PostgresFuncType .DataType }}FromPOST(r, "{{ .SlugName }}", errs)
+{{- end }}
+{{- end }}
+		issues = d.Validate()
+    }
+    return &d, issues, errs
+}
+
+// Validate performs basic validation on this {{ .CodeName }}.
+func (item *{{ .CodeName }}) Validate() (issues []string) {
+{{- range .Columns }}
+    {{- if .HasMaxLen -}}
+    {{- if .IsNullable -}}
+    if item.{{ .CodeName }} != nil && len(*item.{{ .CodeName }}) > {{ .MaxLen }} {
+    {{- else -}}
+    if len(item.{{ .CodeName }}) > {{ .MaxLen }} {
+    {{- end -}}
+        issues = append(issues, "{{ .DisplayName }} cannot be longer than {{ .MaxLen }}.")
+    }
+    {{ end -}}
+{{ end -}}
+    return issues
+}
+{{ end }}

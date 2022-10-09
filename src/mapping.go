@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -101,4 +102,103 @@ func toProper(value string, forDisplay bool) string {
 		s = "Id"
 	}
 	return s
+}
+
+// toColumnNameListCSV returns the database column names comma-delimited
+func toColumnNameListCSV(table Table) string {
+	s := ""
+	for _, col := range table.Columns {
+		if len(s) > 0 {
+			s += ","
+		}
+		s += col.ColumnName
+	}
+	return s
+}
+
+// toColumnNameListNoPrimaryKeysCSV returns the database column names comma-delimited
+// Primary keys are omitted
+func toColumnNameListNoPrimaryKeysCSV(table Table) string {
+	s := ""
+	for _, col := range table.Columns {
+		if col.IsPrimaryKey {
+			continue
+		}
+		if len(s) > 0 {
+			s += ","
+		}
+		s += col.ColumnName
+	}
+	return s
+}
+
+// toPrimaryKeyParametersCSV returns the primary key fields as comma-delimited parameters
+func toPrimaryKeyParametersCSV(table Table) string {
+	s := ""
+	for _, col := range table.Columns {
+		if col.IsPrimaryKey {
+			if len(s) > 0 {
+				s += ","
+			}
+			s += fmt.Sprintf("%s %s", col.ColumnName, col.DataType)
+		}
+	}
+	return s
+}
+
+// toCodeNameListCSV returns the code column names comma-delimited
+// The prefix allows the columns to be 'attached' to something
+func toCodeNameListCSV(table Table, prefix string) string {
+	s := ""
+	for _, col := range table.Columns {
+		if len(s) > 0 {
+			s += ","
+		}
+		s += (prefix + col.CodeName)
+	}
+	return s
+}
+
+// toParameterListNoPrimaryKeysCSV returns comma-delimited '$n' parameters for SQL insert statements.
+// Primary keys are omitted.
+func toParameterListNoPrimaryKeysCSV(table Table) string {
+	s := ""
+	for i, col := range table.Columns {
+		if col.IsPrimaryKey {
+			continue
+		}
+		if len(s) > 0 {
+			s += ","
+		}
+		s += fmt.Sprintf("$%v", i)
+	}
+	return s
+}
+
+// toUpdateListNoPrimaryKeysCSV returns comma-delimited field='$n' parameters for SQL update statements.
+// Primary keys are omitted.
+func toUpdateListNoPrimaryKeysCSV(table Table) string {
+	s := ""
+	for i, col := range table.Columns {
+		if col.IsPrimaryKey {
+			continue
+		}
+		if len(s) > 0 {
+			s += ","
+		}
+		s += fmt.Sprintf("%s=$%v", col.ColumnName, i)
+	}
+	return s
+}
+
+// columnIdxAfterPrimaryKeys returns the number of non-primary key columns.
+func columnIdxAfterPrimaryKeys(table Table) int {
+	c := 0
+	for _, col := range table.Columns {
+		if col.IsPrimaryKey {
+			continue
+		}
+		c++
+	}
+	return c + 1
 }

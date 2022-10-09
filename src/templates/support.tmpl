@@ -1,0 +1,130 @@
+{{- define "support" -}}
+package support
+
+import (
+    "log"
+    "net/http"
+    "strconv"
+    "time"
+)
+
+var postDateTimeFormat = "2006-01-02T15:04:05.000Z"
+
+// Check logs and exits if there is an error.
+func Check(err error) {
+    if err != nil {
+        log.Fatalln(err)
+    }
+}
+
+// DateTimeFromPOST returns nil if the conversion fails.
+func DateTimeFromPOST(r *http.Request, fieldName string, errs []error) *time.Time {
+    value := r.PostForm.Get(fieldName)
+    d, err := time.Parse(postDateTimeFormat, value)
+    if err != nil {
+        errs = append(errs, err)
+        return nil
+    }
+    return &d
+}
+
+// Int64NullableFromPOST returns 0 if the conversion fails.
+func Int64NullableFromPOST(r *http.Request, fieldName string, errs []error) *int64 {
+	value := r.PostForm.Get(fieldName)
+	if len(value) == 0 {
+		return nil
+	}
+	result := Int64FromPOST(r, fieldName, errs)
+	return &result
+}
+
+// Int64FromPOST returns 0 if the conversion fails.
+func Int64FromPOST(r *http.Request, fieldName string, errs []error) int64 {
+    value := r.PostForm.Get(fieldName)
+    d, err := strconv.ParseInt(value, 10, 64)
+    if err != nil {
+        errs = append(errs, err)
+        return 0
+    }
+    return d
+}
+
+// IntNullableFromPOST returns 0 if the conversion fails.
+func IntNullableFromPOST(r *http.Request, fieldName string, errs []error) *int {
+	value := r.PostForm.Get(fieldName)
+	if len(value) == 0 {
+		return nil
+	}
+	result := IntFromPOST(r, fieldName, errs)
+	return &result
+}
+
+// IntFromPOST returns 0 if the conversion fails.
+func IntFromPOST(r *http.Request, fieldName string, errs []error) int {
+    value := r.PostForm.Get(fieldName)
+    d, err := strconv.ParseInt(value, 10, 32)
+    if err != nil {
+        errs = append(errs, err)
+        return 0
+    }
+    return int(d)
+}
+
+// Float64NullableFromPOST returns 0 if the conversion fails.
+func Float64NullableFromPOST(r *http.Request, fieldName string, errs []error) *float64 {
+	value := r.PostForm.Get(fieldName)
+	if len(value) == 0 {
+		return nil
+	}
+	result := Float64FromPOST(r, fieldName, errs)
+	return &result
+}
+
+// Float64FromPOST returns 0 if the conversion fails.
+func Float64FromPOST(r *http.Request, fieldName string, errs []error) float64 {
+    value := r.PostForm.Get(fieldName)
+    d, err := strconv.ParseFloat(value, 64)
+    if err != nil {
+        errs = append(errs, err)
+        return 0
+    }
+    return d
+}
+
+// StringNullableFromPOST returns "" if the conversion fails.
+func StringNullableFromPOST(r *http.Request, fieldName string, errs []error) *string {
+	value := r.PostForm.Get(fieldName)
+	if len(value) == 0 {
+		return nil
+	}
+	result := StringFromPOST(r, fieldName, errs)
+	return &result
+}
+
+// StringFromPOST returns "" if the conversion fails.
+func StringFromPOST(r *http.Request, fieldName string, errs []error) string {
+    return r.PostForm.Get(fieldName)
+}
+
+// BoolNullableFromPOST returns false if the conversion fails.
+func BoolNullableFromPOST(r *http.Request, fieldName string, errs []error) *bool {
+	value := r.PostForm.Get(fieldName)
+	if len(value) == 0 {
+		return nil
+	}
+	result := BoolFromPOST(r, fieldName, errs)
+	return &result
+}
+
+// BoolFromPOST returns false if the conversion fails.
+func BoolFromPOST(r *http.Request, fieldName string, errs []error) bool {
+    value := r.PostForm.Get(fieldName)
+    d, err := strconv.ParseBool(value)
+    if err != nil {
+        errs = append(errs, err)
+        return false
+    }
+    return d
+}
+
+{{- end }}

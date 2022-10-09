@@ -10,3 +10,18 @@
     - Create folder
     - JSON dump file
     - Create output Go module
+    - Templating and embedded templates
+    - Create Go entities
+      - Entity per table
+      - SQL to Go type mapping
+      - SQL comments implemented as Go comments
+      - Generated property comments
+        - Max length, primary key flag, sortable/filterable
+      - Extra constructors
+        - Construct from on a *pgx* row
+        - Construct from a HTTP POST
+      - Column attributes for JSON, SQL, display, and slug
+      - Validation based on SQL column length
+    - Create connection class
+      - Max rows limit
+      - Debug mode (extra display)

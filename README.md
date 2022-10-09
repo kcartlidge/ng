@@ -5,6 +5,15 @@ Generate strongly-typed Go database access code directly from your Postgres data
 - [MIT license](./LICENSE)
 - [CHANGELOG](./CHANGELOG.md)
 
+# Contents
+
+- [Prerequisites](#prerequisites)
+- [Running](#running)
+- [What Near Gothic does](#what-near-gothic-does)
+- [What gets created](#what-gets-created)
+  - [Sample generated folder structure](#sample-generated-folder-structure)
+- [Building cross-platform binaries](#building-cross-platform-binaries)
+
 ## Prerequisites
 
 You'll need a PostgreSQL database and valid connection details.
@@ -55,6 +64,55 @@ Its namespace would be `kcartlidge/app` (the module passed in, minus the end bit
 
 Near Gothic will scan the database and create a `repo` folder inside `~/example`.
 The created repo will use the module path `kcartlidge/app/data`.
+
+## What gets created
+
+You get a repository folder with the following:
+
+- Go module (with `go.mod` and `go.sum`)
+- JSON dump file detailing what was scanned from the database
+  - Useful for your own further processing
+- A set of entities, one per database table
+  - SQL comments implemented as Go comments
+  - Generated property comments
+    - Max length, primary key flag, sortable/filterable
+  - Extra constructors
+    - Construct from on a *pgx* row
+    - Construct from a HTTP POST
+  - Column attributes for JSON, SQL, display, and slug
+  - Validation based on SQL column length
+- A connection class
+
+(*More functionality and a link to sample output is incoming.*)
+
+### Sample generated folder structure
+
+This is the example command used.
+I run it within the `src` folder, and it creates output a few folders higher.
+
+``` shell
+ng -folder ../../_example/repo -module kcartlidge/app/data -schema example -w
+```
+
+Everything goes inside `_example/repo`.
+The assumption is your API is already inside `_example`.
+Upcoming versions will have the option to create a stub API automatically.
+
+```
+/_example                  // target folder
+  /repo                    // generated content root
+    /connection
+      connection.go        // class for db connection
+    /entities
+      account-setting.go   // the 'account_setting' db table
+      account.go           // the 'account' db table
+      setting.go           // the 'setting' db table
+    /support
+      support.go           // support functions
+    dump.json              // JSON dump of the schema
+    go.mod
+    go.sum
+```
 
 ## Building cross-platform binaries
 

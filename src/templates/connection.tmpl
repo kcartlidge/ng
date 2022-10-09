@@ -1,0 +1,46 @@
+{{- define "connection" -}}
+package connection
+
+import (
+    "context"
+    "log"
+	"{{ ModuleName }}/support"
+
+	pgx "github.com/jackc/pgx/v4/pgxpool"
+)
+
+var (
+    MaxRows = 100_000
+    DebugMode = false
+    CTX = context.Background()
+)
+
+// Connection represents a connection to the database.
+type Connection struct {
+    connectionString string
+    DB *pgx.Pool
+}
+
+// Connect connects to and pings the database.
+// Low overhead due to underlying connection pooling.
+func NewConnection(connectionString string) *Connection {
+    c := Connection{}
+    c.Debug("DB", "Connecting")
+    c.connectionString = connectionString
+	ndb, err := pgx.Connect(CTX, connectionString)
+    support.Check(err)
+    err = ndb.Ping(CTX)
+    support.Check(err)
+    c.DB = ndb
+    c.Debug("DB", "Connected")
+    return &c
+}
+
+
+func (c *Connection) Debug(key string, value interface{}) {
+    if DebugMode {
+        log.Println(key + " : ", value)
+    }
+}
+
+{{- end }}
