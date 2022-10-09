@@ -55,6 +55,17 @@ func main() {
 	err := s.ScanPostgresDatabase()
 	check(err)
 
+	// Create the output.
+	fmt.Println()
+	w := NewWriter(folder, s.Schema)
+	exists, err := Exists(w.topFolder)
+	check(err)
+	if !exists || overwrite {
+		w.WriteStuff()
+	} else {
+		check(errors.New("Stuff exists at the output location (-w overwrites)"))
+	}
+
 	// Done.
 	fmt.Println("Done")
 }
@@ -68,4 +79,16 @@ func check(err error) {
 		fmt.Println()
 		os.Exit(1)
 	}
+}
+
+// Exists ... Returns true if the path/filename can be found.
+func Exists(filename string) (bool, error) {
+	_, err := os.Stat(filename)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }

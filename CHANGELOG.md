@@ -6,3 +6,6 @@
     - Initial builds
   - Argument display and parsing
   - Scan Postgres
+  - Write output
+    - Create folder
+    - JSON dump file
