@@ -16,12 +16,12 @@ import (
 const verbose = false
 
 type writer struct {
-	topFolder, entityFolder         string
-	connectionFolder, supportFolder string
-	schema                          Schema
-	commandLine, module             string
-	connectionStringEnvArg          string
-	goFilesWritten                  []string
+	topFolder, entityFolder, repoFolder string
+	connectionFolder, supportFolder     string
+	schema                              Schema
+	commandLine, module                 string
+	connectionStringEnvArg              string
+	goFilesWritten                      []string
 }
 
 func NewWriter(
@@ -33,6 +33,7 @@ func NewWriter(
 	w := writer{
 		topFolder:              path.Clean(folder),
 		entityFolder:           path.Join(folder, "entities"),
+		repoFolder:             path.Join(folder, "repos"),
 		connectionFolder:       path.Join(folder, "connection"),
 		supportFolder:          path.Join(folder, "support"),
 		module:                 module,
@@ -52,6 +53,8 @@ func (w writer) WriteStuff() {
 	w.createSupportFile()
 	w.createEntities()
 	w.createConnection()
+	w.createRepo()
+	w.createEntityRepos()
 
 	w.initModules()
 	w.fetchModules()
@@ -71,6 +74,7 @@ func (w *writer) createOutputFolders() {
 	check(os.MkdirAll(w.supportFolder, 0755))
 	check(os.MkdirAll(w.entityFolder, 0755))
 	check(os.MkdirAll(w.connectionFolder, 0755))
+	check(os.MkdirAll(w.repoFolder, 0755))
 }
 
 func (w *writer) createDumpFile() {
@@ -106,6 +110,20 @@ func (w *writer) createConnection() {
 	fmt.Println("Creating connection")
 	filename := path.Join(w.connectionFolder, "connection.go")
 	w.writeGoFile(filename, "connection", nil)
+}
+
+func (w *writer) createRepo() {
+	fmt.Println("Creating repo")
+	filename := path.Join(w.repoFolder, "repo-base.go")
+	w.writeGoFile(filename, "repo-base", nil)
+}
+
+func (w *writer) createEntityRepos() {
+	fmt.Println("Adding entity repos")
+	for _, table := range w.schema.Tables {
+		filename := path.Join(w.repoFolder, table.SlugName+"-repo.go")
+		w.writeGoFile(filename, "repos", table)
+	}
 }
 
 func (w *writer) initModules() {

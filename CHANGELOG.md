@@ -25,3 +25,13 @@
     - Create connection class
       - Max rows limit
       - Debug mode (extra display)
+    - Create repository code
+      - Base repo with shared functionality
+        - `ExecuteNonQuery` for SQL commands expecting no result rows
+        - `Execute` for SQL commands return *pgx* result rows
+        - Internal support for conditions, sorts, limits, and paging
+      - Per-entity repositories using the Go entity structures
+        - Strongly-typed `List`, `Insert`, `Update`, `Delete`
+        - Support for limits and offsets (for max and paging)
+        - Specific methods for filtering and sorting by each key field
+          - General methods for doing the same by any valid SQL

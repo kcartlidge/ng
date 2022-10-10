@@ -1,0 +1,198 @@
+{{- define "repos" -}}
+package repos
+
+import (
+{{- range .CodeImports }}
+    "{{ .}}"
+{{ end }}
+	pgx "github.com/jackc/pgx/v4"
+
+    "{{ ModuleName }}/connection"
+    "{{ ModuleName }}/entities"
+)
+
+// {{ .CodeName }}Repo contains data access methods for {{ .DisplayName }} items.
+//
+// Specific methods are added for indexed fields.
+// General-purpose methods cover unindexed ones.
+type {{ .CodeName }}Repo struct {
+    repo
+}
+
+
+// ---------- Constructor ----------
+
+// New{{ .CodeName }}Repo creates an instance for database access.
+func New{{ .CodeName }}Repo(connection *connection.Connection) *{{ .CodeName }}Repo {
+    r := {{ .CodeName }}Repo{}
+    r.connection = connection
+    r.ResetConditions()
+    r.ResetSorting()
+    r.ResetLimitAndOffset()
+    return &r
+}
+
+
+// ---------- CRUD methods ----------
+
+// List returns all matching {{ .DisplayName }} items.
+func (r *{{ .CodeName }}Repo) List() ([]entities.{{ .CodeName }}, error) {
+    d := make([]entities.{{ .CodeName }}, 0)
+    cmd := "SELECT {{ toColumnNameListCSV . }} FROM {{ .TableName }} "
+    err := r.Execute(cmd, func(rows pgx.Rows) error {
+        if dd, err := entities.New{{ .CodeName }}FromRows(rows); err != nil {
+            return err
+        } else {
+            d = append(d, *dd)
+            return nil
+        }
+    })
+    return d, err
+}
+
+{{ if .IsUpdatable }}
+// Insert adds a new {{ .DisplayName }} item.
+func (r *{{ .CodeName }}Repo) Insert(item entities.{{ .CodeName }}) (int64, error) {
+    cmd := "INSERT INTO {{ .TableName }} ({{ toColumnNameListNoPrimaryKeysCSV . }}) "
+    cmd += "VALUES ({{ toParameterListNoPrimaryKeysCSV . }}) "
+    var p []interface{}
+{{- range .Columns }}
+{{- if not .IsPrimaryKey }}
+    p = append(p, item.{{ .CodeName }})
+{{- end }}
+{{- end }}
+    return r.ExecuteNonQuery(cmd, p...)
+}
+
+// Update modifies a {{ .DisplayName }} item (all fields except primary keys, which
+// are still required anyway in order to know which items to update).
+func (r *{{ .CodeName }}Repo) Update({{ toPrimaryKeyParametersCSV . }}, item entities.{{ .CodeName }}) (int64, error) {
+    cmd := "UPDATE {{ .TableName }} "
+    cmd += "SET {{ toUpdateListNoPrimaryKeysCSV . }} "
+{{- $firstKeyIdx := columnIdxAfterPrimaryKeys . -}}
+{{- $keyIdx := columnIdxAfterPrimaryKeys . -}}
+{{- range .Columns }}
+{{- if .IsPrimaryKey }}
+{{- if eq $firstKeyIdx $keyIdx }}
+    cmd += "WHERE {{ .ColumnName }}=${{ $keyIdx }} "
+{{ else }}
+    cmd += "AND {{ .ColumnName }}=${{ $keyIdx }} "
+{{ end }}
+{{- $keyIdx = inc $keyIdx -}}
+{{- end }}
+{{- end }}
+
+    // Values to update
+    var p []interface{}
+{{- range .Columns }}
+{{- if not .IsPrimaryKey }}
+    p = append(p, item.{{ .CodeName }})
+{{- end }}
+{{- end }}
+
+    // Primary key restrictions
+{{- range .Columns }}
+{{- if .IsPrimaryKey }}
+    p = append(p, {{ .JsonName }})
+{{- end }}
+{{- end }}
+    return r.ExecuteNonQuery(cmd, p...)
+}
+
+// Delete removes a {{ .DisplayName }} item.
+func (r *{{ .CodeName }}Repo) Delete({{ toPrimaryKeyParametersCSV . }}) (int64, error) {
+    cmd := "DELETE FROM {{ .TableName }} "
+    {{- $keyIdx = 1 -}}
+    {{- range .Columns }}
+        {{- if .IsPrimaryKey }}
+            {{- if eq $keyIdx 1 }}
+                cmd += "WHERE {{ .ColumnName }}=${{ $keyIdx }} "
+            {{ else }}
+                cmd += "AND {{ .ColumnName }}=${{ $keyIdx }} "
+            {{ end }}
+            {{- $keyIdx = inc $keyIdx -}}
+        {{- end }}
+    {{- end -}}
+    var p []interface{}
+    {{- range .Columns }}
+        {{- if .IsPrimaryKey }}
+            p = append(p, {{ .JsonName }})
+        {{- end }}
+    {{- end }}
+    return r.ExecuteNonQuery(cmd, p...)
+    }
+{{- end }}
+
+{{- $codename := .CodeName }}
+
+
+// ---------- Paging ----------
+
+// WithLimit adds a restriction on the {{ .DisplayName }} item(s) returned.
+// Overrides the package's MaxRows value (for this instance only).
+func (r *{{ $codename }}Repo) WithLimit(value int) *{{ $codename }}Repo {
+    r.limit = value
+    return r
+}
+
+// WithOffset skips the given number of {{ .DisplayName }} item(s) in the result set.
+func (r *{{ $codename }}Repo) WithOffset(value int) *{{ $codename }}Repo {
+    r.offset = value
+    return r
+}
+
+
+// ---------- Typed filtering (only indexed fields) ----------
+
+{{- range .Columns }}
+{{ if .CanFilter }}
+// Where{{ .CodeName }} adds a filter for {{ .DisplayName }}.
+func (r *{{ $codename }}Repo) Where{{ .CodeName }}(operator string, value {{ .DataType }}) *{{ $codename }}Repo {
+    return r.Where("{{ .ColumnName }}", operator, value)
+}
+{{ end }}
+{{ end }}
+
+
+// ----------- Typed ordering (only indexed fields) -----------
+
+{{- range .Columns }}
+{{ if .CanFilter }}
+// SortBy{{ .CodeName }} adds sorting by {{ .DisplayName }}.
+func (r *{{ $codename }}Repo) SortBy{{ .CodeName }}() *{{ $codename }}Repo {
+    return r.AddSorting("{{ .ColumnName }}", false)
+}
+{{ end }}
+{{ end }}
+
+{{- range .Columns }}
+{{ if .CanFilter }}
+// ReverseBy{{ .CodeName }} adds reverse sorting by {{ .DisplayName }}.
+func (r *{{ $codename }}Repo) ReverseBy{{ .CodeName }}() *{{ $codename }}Repo {
+    return r.AddSorting("{{ .ColumnName }}", true)
+}
+{{ end }}
+{{ end }}
+
+
+// ---------- Untyped filtering and ordering (any fields) ----------
+
+// Where adds a clause to the request.
+//
+// WARNING:
+// Prefer the predefined field-specific Where... functions as they use indexed fields.
+// Using this method instead is more flexible but may involve unindexed fields.
+// Use carefully/sparingly to avoid performance issues in large data sets.
+func (r *{{ .CodeName }}Repo) Where(thing string, operator string, value interface{}) *{{ .CodeName }}Repo {
+    r.addCondition(thing, operator, value)
+    return r
+}
+
+// AddSorting includes an ad-hoc sort by any valid column/thing.
+// Indexed fields have their own SortBy... variants.
+func (r *{{ .CodeName }}Repo) AddSorting(thing string, descending bool) *{{ .CodeName }}Repo {
+    r.addOrdering(thing, descending)
+    return r
+}
+
+{{- end }}

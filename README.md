@@ -99,17 +99,22 @@ The assumption is your API is already inside `_example`.
 Upcoming versions will have the option to create a stub API automatically.
 
 ```
-/_example                  // target folder
-  /repo                    // generated content root
+/_example                      // target folder
+  /repo                        // generated content root
     /connection
-      connection.go        // class for db connection
+      connection.go            // class for db connection
     /entities
-      account-setting.go   // the 'account_setting' db table
-      account.go           // the 'account' db table
-      setting.go           // the 'setting' db table
+      account-setting.go       // the 'account_setting' db table
+      account.go               // the 'account' db table
+      setting.go               // the 'setting' db table
+    /repos
+      account-repo.go          // the 'account' repository
+      account-setting-repo.go  // the 'account-setting' repository
+      repo-base.go             // shared repository functionality
+      setting-repo.go          // the 'setting' repository
     /support
-      support.go           // support functions
-    dump.json              // JSON dump of the schema
+      support.go               // support functions
+    dump.json                  // JSON dump of the schema
     go.mod
     go.sum
 ```
