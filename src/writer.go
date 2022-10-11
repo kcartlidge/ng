@@ -55,6 +55,7 @@ func (w writer) WriteStuff() {
 	w.createConnection()
 	w.createRepo()
 	w.createEntityRepos()
+	w.createReadme()
 
 	w.initModules()
 	w.fetchModules()
@@ -124,6 +125,12 @@ func (w *writer) createEntityRepos() {
 		filename := path.Join(w.repoFolder, table.SlugName+"-repo.go")
 		w.writeGoFile(filename, "repos", table)
 	}
+}
+
+func (w *writer) createReadme() {
+	fmt.Println("Writing README.md")
+	filename := path.Join(w.topFolder, "README.md")
+	w.writeFile(filename, "readme", w.schema)
 }
 
 func (w *writer) initModules() {

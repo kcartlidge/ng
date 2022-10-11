@@ -35,3 +35,8 @@
         - Support for limits and offsets (for max and paging)
         - Specific methods for filtering and sorting by each key field
           - General methods for doing the same by any valid SQL
+    - Create a README for the generated repository
+      - Shows the command used to generate the code (for ease of repeating)
+      - Has a table detailing the SQL tables and their repository models
+      - A set of bullets detail roughly what functionality is supported
+      - A snippet of sample code gives an idea of how to use it
