@@ -2,6 +2,13 @@
 
 Generate strongly-typed Go database access code directly from your Postgres database schema.
 
+## STATUS
+
+It currently scans the database and generates code/scripts as detailed below.
+For this use case, it is stable and considered *beta* but unreleased.
+The automatic generation of an API is currently in progress.
+It is expected to land this coming week.
+
 - [MIT license](./LICENSE)
 - [CHANGELOG](./CHANGELOG.md)
 
@@ -11,6 +18,7 @@ Generate strongly-typed Go database access code directly from your Postgres data
 - [Running](#running)
 - [What Near Gothic does](#what-near-gothic-does)
 - [What gets created](#what-gets-created)
+  - [IMPORTANT note about 'go.mod'](#important-note-about-gomod)
   - [Sample generated folder structure](#sample-generated-folder-structure)
 - [Building cross-platform binaries](#building-cross-platform-binaries)
 
@@ -78,12 +86,24 @@ You get a repository folder with the following:
     - Max length, primary key flag, sortable/filterable
   - Extra constructors
     - Construct from on a *pgx* row
-    - Construct from a HTTP POST
+    - Construct from an HTTP POST
   - Column attributes for JSON, SQL, display, and slug
   - Validation based on SQL column length
-- A connection class
+- A connection package
+- A package of strongly-typed repositories
+- A `README.md` detailing what the repo contains
+- An emergency SQL script to recreate the entities
+  - Comments, constraints, keys, defaults, and more
 
-(*More functionality and a link to sample output is incoming.*)
+There's [an example of the generated code](./_example) in the `_example` folder.
+
+### IMPORTANT note about 'go.mod'
+
+As the API code is not yet committed, the `go.mod` is provided as a courtesy.
+It stops the currently-generated code being seen as broken when opened in an IDE.
+
+In order to make use of it, the generated `go.mod` and `go.sum` should be deleted.
+This is because the module path should be inherited from the enclosing API/app.
 
 ### Sample generated folder structure
 
@@ -117,7 +137,13 @@ Upcoming versions will have the option to create a stub API automatically.
     dump.json                  // JSON dump of the schema
     go.mod
     go.sum
+    postgres.sql               // SQL to recreate the entities
+    README.md                  // Overview of the generated code
 ```
+
+Note that the generated `README.md` has a table in Markdown format.
+This is currently not displaying in the GoLand Markdown previewer.
+It does however display correct in Visual Studio Code and elsewhere.
 
 ## Building cross-platform binaries
 

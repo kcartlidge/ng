@@ -46,10 +46,12 @@ type arguments struct {
 	// user-provided argument (eg a missing required flag).
 	Issues [][]string
 
-	required map[string]bool
-	args     []string
-	help     map[string]string
-	colWidth int
+	flagsOrder  []string
+	valuesOrder []string
+	required    map[string]bool
+	args        []string
+	help        map[string]string
+	colWidth    int
 }
 
 type foundItem struct {
@@ -77,6 +79,8 @@ func New(args []string) arguments {
 		Issues:      [][]string{},
 		help:        make(map[string]string),
 		colWidth:    1,
+		flagsOrder:  []string{},
+		valuesOrder: []string{},
 	}
 	a.args = args[1:]
 	for i := 0; i < len(args); i++ {
@@ -95,9 +99,10 @@ func (a *arguments) AddFlag(name string, required bool, defaultValue bool, help 
 	a.help[name] = help
 	a.required[name] = required
 	a.colWidth = int(math.Max(float64(a.colWidth), float64(len(name))))
+	a.flagsOrder = append(a.flagsOrder, name)
 }
 
-// AddFlag adds a value with the `name` being the key.
+// AddValue adds a value with the `name` being the key.
 // Use an empty string for no `defaultValue`.
 func (a *arguments) AddValue(name string, required bool, defaultValue string, help string) {
 	name = strings.ToLower(strings.TrimSpace(name))
@@ -105,6 +110,7 @@ func (a *arguments) AddValue(name string, required bool, defaultValue string, he
 	a.help[name] = help
 	a.required[name] = required
 	a.colWidth = int(math.Max(float64(a.colWidth), float64(len(name))))
+	a.valuesOrder = append(a.valuesOrder, name)
 }
 
 // ShowUsage displays the usage details along with flags, values, and their defaults.
@@ -116,10 +122,10 @@ func (a *arguments) ShowUsage() {
 	fmt.Printf("%sUSAGE\n", indentString)
 	fmt.Printf("%s  %s", indentString, a.AppName)
 	if len(a.Flags) > 0 || len(a.Values) > 0 {
-		for k := range a.Flags {
+		for _, k := range a.flagsOrder {
 			fmt.Printf(" -%s", k)
 		}
-		for k := range a.Values {
+		for _, k := range a.valuesOrder {
 			fmt.Printf(" -%s <value>", k)
 		}
 		fmt.Println()
@@ -130,7 +136,7 @@ func (a *arguments) ShowUsage() {
 
 		// Boolean flags.
 		if len(a.Flags) > 0 {
-			for k, v := range a.Flags {
+			for _, k := range a.flagsOrder {
 				req := " "
 				if a.required[k] {
 					req = "*"
@@ -139,6 +145,7 @@ func (a *arguments) ShowUsage() {
 				pad := strings.Repeat(" ", a.colWidth-len(k))
 				name := "-" + k + "        " + pad
 				fmt.Printf("%s  %s  %s  %s", indentString, name, req, a.help[k])
+				v := a.Flags[k]
 				if v {
 					fmt.Printf(" (default %v)", v)
 				}
@@ -148,7 +155,7 @@ func (a *arguments) ShowUsage() {
 
 		// Value arguments.
 		if len(a.Values) > 0 {
-			for k, v := range a.Values {
+			for _, k := range a.valuesOrder {
 				req := " "
 				if a.required[k] {
 					req = "*"
@@ -157,6 +164,7 @@ func (a *arguments) ShowUsage() {
 				pad := strings.Repeat(" ", a.colWidth-len(k))
 				name := "-" + k + " <value>" + pad
 				fmt.Printf("%s  %s  %s  %s", indentString, name, req, a.help[k])
+				v := a.Values[k]
 				if len(v) > 0 {
 					fmt.Printf(" (default `%v`)", v)
 				}

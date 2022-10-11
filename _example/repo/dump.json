@@ -1,0 +1,509 @@
+{
+	"schemaName": "example",
+	"codeName": "Example",
+	"displayName": "Example",
+	"jsonName": "example",
+	"slugName": "example",
+	"owner": "example",
+	"tables": [
+		{
+			"schemaName": "example",
+			"tableName": "account",
+			"codeName": "Account",
+			"displayName": "Account",
+			"jsonName": "account",
+			"slugName": "account",
+			"owner": "example",
+			"comment": "A table of user accounts.",
+			"tableType": "BASE TABLE",
+			"isUpdatable": true,
+			"columns": [
+				{
+					"position": 1,
+					"columnName": "id",
+					"codeName": "Id",
+					"displayName": "Id",
+					"jsonName": "id",
+					"slugName": "id",
+					"comment": "The unique account ID.",
+					"isPrimaryKey": true,
+					"isNullable": false,
+					"isCardinal": true,
+					"hasMaxLen": false,
+					"hasDefault": true,
+					"hasPrecision": true,
+					"canFilter": true,
+					"sqlType": "bigint",
+					"dataType": "int64",
+					"columnDefault": "nextval('account_id_seq'::regclass)",
+					"numericPrecision": 64
+				},
+				{
+					"position": 2,
+					"columnName": "email_address",
+					"codeName": "EmailAddress",
+					"displayName": "Email Address",
+					"jsonName": "emailAddress",
+					"slugName": "email-address",
+					"comment": "The account-holder's contact email address.",
+					"isPrimaryKey": false,
+					"isNullable": false,
+					"isCardinal": false,
+					"hasMaxLen": true,
+					"hasDefault": false,
+					"hasPrecision": false,
+					"canFilter": true,
+					"sqlType": "character varying",
+					"dataType": "string",
+					"maxLen": 250
+				},
+				{
+					"position": 3,
+					"columnName": "display_name",
+					"codeName": "DisplayName",
+					"displayName": "Display Name",
+					"jsonName": "displayName",
+					"slugName": "display-name",
+					"comment": "The account-holder's display name.",
+					"isPrimaryKey": false,
+					"isNullable": false,
+					"isCardinal": false,
+					"hasMaxLen": true,
+					"hasDefault": false,
+					"hasPrecision": false,
+					"canFilter": false,
+					"sqlType": "character varying",
+					"dataType": "string",
+					"maxLen": 50
+				},
+				{
+					"position": 4,
+					"columnName": "created_at",
+					"codeName": "CreatedAt",
+					"displayName": "Created At",
+					"jsonName": "createdAt",
+					"slugName": "created-at",
+					"comment": "When the account was created.",
+					"isPrimaryKey": false,
+					"isNullable": false,
+					"isCardinal": false,
+					"hasMaxLen": false,
+					"hasDefault": false,
+					"hasPrecision": false,
+					"canFilter": false,
+					"sqlType": "timestamp with time zone",
+					"dataType": "*time.Time"
+				},
+				{
+					"position": 5,
+					"columnName": "updated_at",
+					"codeName": "UpdatedAt",
+					"displayName": "Updated At",
+					"jsonName": "updatedAt",
+					"slugName": "updated-at",
+					"comment": "When the account details were last updated.",
+					"isPrimaryKey": false,
+					"isNullable": false,
+					"isCardinal": false,
+					"hasMaxLen": false,
+					"hasDefault": true,
+					"hasPrecision": false,
+					"canFilter": false,
+					"sqlType": "timestamp with time zone",
+					"dataType": "*time.Time",
+					"columnDefault": "now()"
+				},
+				{
+					"position": 6,
+					"columnName": "deleted_at",
+					"codeName": "DeletedAt",
+					"displayName": "Deleted At",
+					"jsonName": "deletedAt",
+					"slugName": "deleted-at",
+					"comment": "When (if) the account was deleted.",
+					"isPrimaryKey": false,
+					"isNullable": true,
+					"isCardinal": false,
+					"hasMaxLen": false,
+					"hasDefault": false,
+					"hasPrecision": false,
+					"canFilter": false,
+					"sqlType": "timestamp with time zone",
+					"dataType": "*time.Time"
+				}
+			],
+			"constraints": [
+				{
+					"constraintName": "account_pkey",
+					"codeName": "AccountPkey",
+					"displayName": "Account Pkey",
+					"jsonName": "accountPkey",
+					"slugName": "account-pkey",
+					"isPrimaryKey": true,
+					"isForeignKey": false,
+					"isUniqueKey": false,
+					"columnNames": [
+						"id"
+					],
+					"constraintType": "PRIMARY KEY"
+				},
+				{
+					"constraintName": "uniq_account_email_address",
+					"codeName": "UniqAccountEmailAddress",
+					"displayName": "Uniq Account Email Address",
+					"jsonName": "uniqAccountEmailAddress",
+					"slugName": "uniq-account-email-address",
+					"isPrimaryKey": false,
+					"isForeignKey": false,
+					"isUniqueKey": true,
+					"columnNames": [
+						"email_address"
+					],
+					"constraintType": "UNIQUE"
+				}
+			],
+			"indexes": [
+				{
+					"indexName": "account_pkey",
+					"codeName": "AccountPkey",
+					"displayName": "Account Pkey",
+					"jsonName": "accountPkey",
+					"slugName": "account-pkey",
+					"columnNames": [
+						"id"
+					],
+					"isPrimaryKey": true,
+					"isUnique": true
+				},
+				{
+					"indexName": "uniq_account_email_address",
+					"codeName": "UniqAccountEmailAddress",
+					"displayName": "Uniq Account Email Address",
+					"jsonName": "uniqAccountEmailAddress",
+					"slugName": "uniq-account-email-address",
+					"columnNames": [
+						"email_address"
+					],
+					"isPrimaryKey": false,
+					"isUnique": true
+				}
+			],
+			"codeImports": []
+		},
+		{
+			"schemaName": "example",
+			"tableName": "account_setting",
+			"codeName": "AccountSetting",
+			"displayName": "Account Setting",
+			"jsonName": "accountSetting",
+			"slugName": "account-setting",
+			"owner": "example",
+			"comment": "Settings for a particular account.",
+			"tableType": "BASE TABLE",
+			"isUpdatable": true,
+			"columns": [
+				{
+					"position": 1,
+					"columnName": "id",
+					"codeName": "Id",
+					"displayName": "Id",
+					"jsonName": "id",
+					"slugName": "id",
+					"comment": "The unique ID for this setting for this account.",
+					"isPrimaryKey": true,
+					"isNullable": false,
+					"isCardinal": true,
+					"hasMaxLen": false,
+					"hasDefault": true,
+					"hasPrecision": true,
+					"canFilter": true,
+					"sqlType": "bigint",
+					"dataType": "int64",
+					"columnDefault": "nextval('account_setting_id_seq'::regclass)",
+					"numericPrecision": 64
+				},
+				{
+					"position": 2,
+					"columnName": "account_id",
+					"codeName": "AccountId",
+					"displayName": "Account Id",
+					"jsonName": "accountId",
+					"slugName": "account-id",
+					"comment": "The account this setting's value applies to.",
+					"isPrimaryKey": false,
+					"isNullable": false,
+					"isCardinal": true,
+					"hasMaxLen": false,
+					"hasDefault": false,
+					"hasPrecision": true,
+					"canFilter": false,
+					"sqlType": "bigint",
+					"dataType": "int64",
+					"numericPrecision": 64
+				},
+				{
+					"position": 3,
+					"columnName": "setting_id",
+					"codeName": "SettingId",
+					"displayName": "Setting Id",
+					"jsonName": "settingId",
+					"slugName": "setting-id",
+					"comment": "The ID of the setting which has this value.",
+					"isPrimaryKey": false,
+					"isNullable": false,
+					"isCardinal": true,
+					"hasMaxLen": false,
+					"hasDefault": false,
+					"hasPrecision": true,
+					"canFilter": false,
+					"sqlType": "bigint",
+					"dataType": "int64",
+					"numericPrecision": 64
+				},
+				{
+					"position": 4,
+					"columnName": "value",
+					"codeName": "Value",
+					"displayName": "Value",
+					"jsonName": "value",
+					"slugName": "value",
+					"comment": "The current value for this account setting.",
+					"isPrimaryKey": false,
+					"isNullable": false,
+					"isCardinal": false,
+					"hasMaxLen": true,
+					"hasDefault": true,
+					"hasPrecision": false,
+					"canFilter": false,
+					"sqlType": "character varying",
+					"dataType": "string",
+					"maxLen": 250,
+					"columnDefault": "''::character varying"
+				},
+				{
+					"position": 5,
+					"columnName": "updated_at",
+					"codeName": "UpdatedAt",
+					"displayName": "Updated At",
+					"jsonName": "updatedAt",
+					"slugName": "updated-at",
+					"comment": "When the value was last updated.",
+					"isPrimaryKey": false,
+					"isNullable": false,
+					"isCardinal": false,
+					"hasMaxLen": false,
+					"hasDefault": true,
+					"hasPrecision": false,
+					"canFilter": false,
+					"sqlType": "timestamp with time zone",
+					"dataType": "*time.Time",
+					"columnDefault": "now()"
+				}
+			],
+			"constraints": [
+				{
+					"constraintName": "account_setting_pkey",
+					"codeName": "AccountSettingPkey",
+					"displayName": "Account Setting Pkey",
+					"jsonName": "accountSettingPkey",
+					"slugName": "account-setting-pkey",
+					"isPrimaryKey": true,
+					"isForeignKey": false,
+					"isUniqueKey": false,
+					"columnNames": [
+						"id"
+					],
+					"constraintType": "PRIMARY KEY"
+				},
+				{
+					"constraintName": "fk_account_setting_account",
+					"codeName": "FkAccountSettingAccount",
+					"displayName": "Fk Account Setting Account",
+					"jsonName": "fkAccountSettingAccount",
+					"slugName": "fk-account-setting-account",
+					"isPrimaryKey": false,
+					"isForeignKey": true,
+					"isUniqueKey": false,
+					"columnNames": [
+						"account_id"
+					],
+					"constraintType": "FOREIGN KEY",
+					"foreignTable": "account",
+					"foreignColumn": "id"
+				},
+				{
+					"constraintName": "fk_account_setting_setting",
+					"codeName": "FkAccountSettingSetting",
+					"displayName": "Fk Account Setting Setting",
+					"jsonName": "fkAccountSettingSetting",
+					"slugName": "fk-account-setting-setting",
+					"isPrimaryKey": false,
+					"isForeignKey": true,
+					"isUniqueKey": false,
+					"columnNames": [
+						"setting_id"
+					],
+					"constraintType": "FOREIGN KEY",
+					"foreignTable": "setting",
+					"foreignColumn": "id"
+				}
+			],
+			"indexes": [
+				{
+					"indexName": "account_setting_pkey",
+					"codeName": "AccountSettingPkey",
+					"displayName": "Account Setting Pkey",
+					"jsonName": "accountSettingPkey",
+					"slugName": "account-setting-pkey",
+					"columnNames": [
+						"id"
+					],
+					"isPrimaryKey": true,
+					"isUnique": true
+				}
+			],
+			"codeImports": []
+		},
+		{
+			"schemaName": "example",
+			"tableName": "setting",
+			"codeName": "Setting",
+			"displayName": "Setting",
+			"jsonName": "setting",
+			"slugName": "setting",
+			"owner": "example",
+			"comment": "The settings available for an account.",
+			"tableType": "BASE TABLE",
+			"isUpdatable": true,
+			"columns": [
+				{
+					"position": 1,
+					"columnName": "id",
+					"codeName": "Id",
+					"displayName": "Id",
+					"jsonName": "id",
+					"slugName": "id",
+					"comment": "The unique setting ID.",
+					"isPrimaryKey": true,
+					"isNullable": false,
+					"isCardinal": true,
+					"hasMaxLen": false,
+					"hasDefault": true,
+					"hasPrecision": true,
+					"canFilter": true,
+					"sqlType": "bigint",
+					"dataType": "int64",
+					"columnDefault": "nextval('setting_id_seq'::regclass)",
+					"numericPrecision": 64
+				},
+				{
+					"position": 2,
+					"columnName": "display_name",
+					"codeName": "DisplayName",
+					"displayName": "Display Name",
+					"jsonName": "displayName",
+					"slugName": "display-name",
+					"comment": "The displayable brief name for this setting.",
+					"isPrimaryKey": false,
+					"isNullable": false,
+					"isCardinal": false,
+					"hasMaxLen": true,
+					"hasDefault": false,
+					"hasPrecision": false,
+					"canFilter": false,
+					"sqlType": "character varying",
+					"dataType": "string",
+					"maxLen": 50
+				},
+				{
+					"position": 3,
+					"columnName": "details",
+					"codeName": "Details",
+					"displayName": "Details",
+					"jsonName": "details",
+					"slugName": "details",
+					"comment": "Descriptive details for this setting.",
+					"isPrimaryKey": false,
+					"isNullable": false,
+					"isCardinal": false,
+					"hasMaxLen": true,
+					"hasDefault": false,
+					"hasPrecision": false,
+					"canFilter": false,
+					"sqlType": "character varying",
+					"dataType": "string",
+					"maxLen": 500
+				},
+				{
+					"position": 4,
+					"columnName": "max_value_length",
+					"codeName": "MaxValueLength",
+					"displayName": "Max Value Length",
+					"jsonName": "maxValueLength",
+					"slugName": "max-value-length",
+					"comment": "The longest a value for this setting is allowed to be.",
+					"isPrimaryKey": false,
+					"isNullable": false,
+					"isCardinal": true,
+					"hasMaxLen": false,
+					"hasDefault": true,
+					"hasPrecision": true,
+					"canFilter": false,
+					"sqlType": "bigint",
+					"dataType": "int64",
+					"columnDefault": "30",
+					"numericPrecision": 64
+				},
+				{
+					"position": 5,
+					"columnName": "is_enabled",
+					"codeName": "IsEnabled",
+					"displayName": "Is Enabled",
+					"jsonName": "isEnabled",
+					"slugName": "is-enabled",
+					"comment": "",
+					"isPrimaryKey": false,
+					"isNullable": false,
+					"isCardinal": false,
+					"hasMaxLen": false,
+					"hasDefault": false,
+					"hasPrecision": false,
+					"canFilter": false,
+					"sqlType": "boolean",
+					"dataType": "bool"
+				}
+			],
+			"constraints": [
+				{
+					"constraintName": "setting_pkey",
+					"codeName": "SettingPkey",
+					"displayName": "Setting Pkey",
+					"jsonName": "settingPkey",
+					"slugName": "setting-pkey",
+					"isPrimaryKey": true,
+					"isForeignKey": false,
+					"isUniqueKey": false,
+					"columnNames": [
+						"id"
+					],
+					"constraintType": "PRIMARY KEY"
+				}
+			],
+			"indexes": [
+				{
+					"indexName": "setting_pkey",
+					"codeName": "SettingPkey",
+					"displayName": "Setting Pkey",
+					"jsonName": "settingPkey",
+					"slugName": "setting-pkey",
+					"columnNames": [
+						"id"
+					],
+					"isPrimaryKey": true,
+					"isUnique": true
+				}
+			],
+			"codeImports": []
+		}
+	]
+}

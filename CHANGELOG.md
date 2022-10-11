@@ -40,3 +40,8 @@
       - Has a table detailing the SQL tables and their repository models
       - A set of bullets detail roughly what functionality is supported
       - A snippet of sample code gives an idea of how to use it
+    - Create emergency backup SQL script for the entities
+      - Includes comments detailing what and why
+      - PostgreSQL script statement per table
+        - Table ownership, comment, constraints, keys
+        - Column type, length, nullability, comment, default
