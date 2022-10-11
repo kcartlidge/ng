@@ -1,0 +1,41 @@
+{{- define "sql-scripts" -}}
+{{ $schema := . -}}
+
+/*
+WARNINGS
+
+This is a fallback script only, NOT a structural database backup.
+The SQL below only represents what was needed to generate code
+and is intended solely for emergency use when other backups fail.
+Schemas created from it may omit things (eg sequences, functions).
+
+The script should NOT be simply executed in one go!
+Several deliberate restrictions *force* you to take care:
+  - DROP statements assume things already exist
+  - Tables are in RANDOM order, NOT in order of dependencies
+
+DATABASE SETUP
+
+You'll need a Postgres server and a database.
+Here's some example SQL to create a suitable login and schema in Postgres.
+Remember to CHANGE THE PASSWORD.
+The details should be the same as the ones in your connection string
+environment variable (the last environment variable name used was
+'{{ ConnectionStringEnvArg }}').
+
+CREATE USER {{ .Owner }} WITH PASSWORD '{{ .Owner }}';
+CREATE DATABASE {{ .SchemaName }}
+WITH
+    ENCODING = 'UTF8'
+    OWNER = {{ .Owner }}
+    CONNECTION LIMIT = 100;
+CREATE SCHEMA {{ .SchemaName }} AUTHORIZATION {{ .Owner }};
+*/
+
+
+{{ range .Tables }}
+
+-------- {{ .DisplayName }} --------
+{{ .GetTableSQL -}}
+{{ end -}}
+{{- end }}

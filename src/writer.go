@@ -56,6 +56,7 @@ func (w writer) WriteStuff() {
 	w.createRepo()
 	w.createEntityRepos()
 	w.createReadme()
+	w.createSQL()
 
 	w.initModules()
 	w.fetchModules()
@@ -131,6 +132,12 @@ func (w *writer) createReadme() {
 	fmt.Println("Writing README.md")
 	filename := path.Join(w.topFolder, "README.md")
 	w.writeFile(filename, "readme", w.schema)
+}
+
+func (w *writer) createSQL() {
+	fmt.Println("Creating SQL script")
+	filename := path.Join(w.topFolder, "postgres.sql")
+	w.writeFile(filename, "sql-scripts", w.schema)
 }
 
 func (w *writer) initModules() {
