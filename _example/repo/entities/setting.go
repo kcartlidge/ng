@@ -5,7 +5,7 @@ import (
 
 	pgx "github.com/jackc/pgx/v4"
 
-	"kcartlidge/app/data/support"
+	"kcartlidge/api/repo/support"
 )
 
 // Setting is for table `setting`.

@@ -2,7 +2,7 @@ package connection
 
 import (
 	"context"
-	"kcartlidge/app/data/support"
+	"kcartlidge/api/repo/support"
 	"log"
 
 	pgx "github.com/jackc/pgx/v4/pgxpool"

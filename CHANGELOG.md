@@ -45,3 +45,9 @@
       - PostgreSQL script statement per table
         - Table ownership, comment, constraints, keys
         - Column type, length, nullability, comment, default
+    - Generate stub API
+      - Basic server using Gorilla mux
+      - Middleware to enforce JSON each way
+      - Support for easily adding other middleware
+        - Logging middleware example included
+      - Server listens on port 3000

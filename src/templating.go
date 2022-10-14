@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
+	"os"
 	"path"
 	"strings"
 	"text/template"
@@ -85,6 +86,11 @@ func (w *writer) getTemplatedData(data interface{}, templateName string) []byte 
 				}
 				return txt
 			},
+			"CurrentFolder": func() string {
+				cwd, err := os.Getwd()
+				check(err)
+				return cwd
+			},
 			"CommandLine": func() string {
 				return w.commandLine
 			},
@@ -96,6 +102,9 @@ func (w *writer) getTemplatedData(data interface{}, templateName string) []byte 
 			},
 			"ModuleName": func() string {
 				return w.module
+			},
+			"RepoName": func() string {
+				return w.repoName
 			},
 			"PostgresFuncType": func(goType string) string {
 				if len(goType) < 2 {

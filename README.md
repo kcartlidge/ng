@@ -1,13 +1,14 @@
 # Near Gothic
 
 Generate strongly-typed Go database access code directly from your Postgres database schema.
+Automatic API generation is currently in progress.
 
 ## STATUS
 
-It currently scans the database and generates code/scripts as detailed below.
+It scans the database and generates code/scripts as detailed below.
 For this use case, it is stable and considered *beta* but unreleased.
-The automatic generation of an API is currently in progress.
-It is expected to land this coming week.
+The automatic generation of an API is *in progress* (see the latest commits).
+It's currently an almost empty server, expected to be completed this coming week.
 
 - [MIT license](./LICENSE)
 - [CHANGELOG](./CHANGELOG.md)
@@ -18,7 +19,6 @@ It is expected to land this coming week.
 - [Running](#running)
 - [What Near Gothic does](#what-near-gothic-does)
 - [What gets created](#what-gets-created)
-  - [IMPORTANT note about 'go.mod'](#important-note-about-gomod)
   - [Sample generated folder structure](#sample-generated-folder-structure)
 - [Building cross-platform binaries](#building-cross-platform-binaries)
 
@@ -43,19 +43,20 @@ When run they will display the command requirements (as shown below).
 
 ```
 USAGE
-  ng -w -folder <value> -module <value> -env <value> -schema <value>
+  ng -w -env <value> -schema <value> -module <value> -folder <value> -repo <value>
 
 ARGUMENTS
-  -w                  overwrite any existing destination folder
+  -w                  overwrite any existing destination folder?
   -env <value>        connection string environment variable (default `DB_CONNSTR`)
   -schema <value>     the Postgres database schema to scan (default `public`)
-  -folder <value>  *  destination folder, either relative or absolute
   -module <value>  *  the Go module for created code (eg `kcartlidge/app/data`)
+  -folder <value>  *  destination folder, either relative or absolute
+  -repo <value>    *  repository subfolder name
 
   * means the argument is required
 
 EXAMPLE
-  ng -w -folder ~/example/repo -module kcartlidge/app/data -env DB_CONNSTR -schema example
+  ng -w -env DB_CONNSTR -schema example -module kcartlidge/api -folder ~/example -repo repo
 ```
 
 ## What Near Gothic does
@@ -63,21 +64,17 @@ EXAMPLE
 - If overwrite is specified (`-w`) it replaces any existing file(s)
 - It uses the specified environment variable (`-env`) to connect to the database
 - It scans the specified schema (`-schema`)
-- It creates repository code in the output location (`-folder`)
-- The Go code will use the specified module path (`-module`)
-
-The general idea is that you'll have an API or app already created.
-For the example above that would be in the `~/example` folder.
-Its namespace would be `kcartlidge/app` (the module passed in, minus the end bit).
-
-Near Gothic will scan the database and create a `repo` folder inside `~/example`.
-The created repo will use the module path `kcartlidge/app/data`.
+- The Go code for the API will use the specified module path (`-module`)
+- It creates API code in the output location (`-folder`)
+- The `-repo` is appended to the `-folder` to specify where the repo is created
+- The `-repo` is appended to the `-module` to form the module path for the repo
 
 ## What gets created
 
-You get a repository folder with the following:
+You get a folder with the following:
 
 - Go module (with `go.mod` and `go.sum`)
+- Basic JSON API with middleware etc
 - JSON dump file detailing what was scanned from the database
   - Useful for your own further processing
 - A set of entities, one per database table
@@ -97,26 +94,11 @@ You get a repository folder with the following:
 
 There's [an example of the generated code](./_example) in the `_example` folder.
 
-### IMPORTANT note about 'go.mod'
-
-As the API code is not yet committed, the `go.mod` is provided as a courtesy.
-It stops the currently-generated code being seen as broken when opened in an IDE.
-
-In order to make use of it, the generated `go.mod` and `go.sum` should be deleted.
-This is because the module path should be inherited from the enclosing API/app.
-
 ### Sample generated folder structure
 
-This is the example command used.
-I run it within the `src` folder, and it creates output a few folders higher.
-
-``` shell
-ng -folder ../../_example/repo -module kcartlidge/app/data -schema example -w
-```
-
-Everything goes inside `_example/repo`.
-The assumption is your API is already inside `_example`.
-Upcoming versions will have the option to create a stub API automatically.
+The [`_example`](./_example) folder contains some generated code.
+The `README.md` file in there shows the command used to generate it.
+Here's a high-level breakdown of what the files/folders contain.
 
 ```
 /_example                      // target folder
@@ -127,18 +109,20 @@ Upcoming versions will have the option to create a stub API automatically.
       account-setting.go       // the 'account_setting' db table
       account.go               // the 'account' db table
       setting.go               // the 'setting' db table
-    /repos
-      account-repo.go          // the 'account' repository
-      account-setting-repo.go  // the 'account-setting' repository
-      repo-base.go             // shared repository functionality
-      setting-repo.go          // the 'setting' repository
     /support
       support.go               // support functions
-    dump.json                  // JSON dump of the schema
-    go.mod
-    go.sum
-    postgres.sql               // SQL to recreate the entities
-    README.md                  // Overview of the generated code
+    account-repo.go            // the 'account' repository
+    account-setting-repo.go    // the 'account-setting' repository
+    repo-base.go               // shared repository functionality
+    setting-repo.go            // the 'setting' repository
+  dump.json                    // JSON dump of the schema
+  go.mod
+  go.sum
+  main.go                      // starting point of the stub API server
+  middleware.go                // some API middleware
+  postgres.sql                 // SQL to recreate the entities
+  README.md                    // Overview of the generated code
+  server.go                    // the server functionality
 ```
 
 Note that the generated `README.md` has a table in Markdown format.
@@ -148,7 +132,7 @@ It does however display correct in Visual Studio Code and elsewhere.
 ## Building cross-platform binaries
 
 The [`src/scripts`](./src/scripts) folder has scripts to be run *on* Linux, Mac, and Windows.
-Use the one for the system *you* are currently using.
+Use the one for the system *you* are currently using
 
 Each of those scripts will produce builds for the three platforms at once.
 When built they will automatically be placed in the expected `src/builds` folder.

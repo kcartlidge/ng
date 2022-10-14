@@ -1,0 +1,62 @@
+package main
+
+// This file is standard across all generated APIs.
+// It contains some commonly needed middleware functions.
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"strings"
+	"time"
+)
+
+const (
+	jsonType       = "application/json"
+	xmlType        = "text/xml"
+	contentTypeHdr = "Content-Type"
+	acceptHeader   = "Accept"
+)
+
+// Logger is middleware for logging out request URL and duration.
+func (s *Server) Logger(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		startTime := time.Now()
+		defer func() {
+			d := time.Now().Sub(startTime)
+			u := strings.TrimPrefix(r.RequestURI, s.urlPrefix)
+			di := fmt.Sprintf("%12v  %s %s", d.Truncate(time.Microsecond), r.Method, u)
+			log.Println(di)
+		}()
+		next.ServeHTTP(w, r)
+	})
+}
+
+// enforceJSON middleware ensures JSON request and response content types.
+// For a GET it uses the Accept header, otherwise it uses Content-Type.
+func (s *Server) enforceJSON(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// Must 'Accept' JSON.
+		at := r.Header.Get(acceptHeader)
+		if at != jsonType {
+			w.Header().Set(contentTypeHdr, "text/plain")
+			http.Error(w, "This request requires you specifically 'Accept' JSON", http.StatusBadRequest)
+			return
+		}
+
+		// Must send 'Content-Type' JSON for non-GET.
+		if r.Method != "GET" {
+			ct := r.Header.Get(contentTypeHdr)
+			if ct != jsonType {
+				w.Header().Set(contentTypeHdr, "text/plain")
+				http.Error(w, "This request requires a 'Content-Type' of JSON", http.StatusBadRequest)
+				return
+			}
+		}
+
+		// Delivers 'Content-Type' JSON.
+		w.Header().Set(contentTypeHdr, jsonType)
+		next.ServeHTTP(w, r)
+	})
+}

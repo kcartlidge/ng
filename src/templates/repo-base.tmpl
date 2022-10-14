@@ -1,5 +1,5 @@
 {{- define "repo-base" -}}
-package repos
+package {{ RepoName }}
 
 import (
 "errors"
@@ -8,7 +8,7 @@ import (
 
 pgx "github.com/jackc/pgx/v4"
 
-"{{ ModuleName }}/connection"
+"{{ ModuleName }}/{{ RepoName }}/connection"
 )
 
 // repo represents a connection to the database for a single repo.

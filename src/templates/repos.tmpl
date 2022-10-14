@@ -1,5 +1,5 @@
 {{- define "repos" -}}
-package repos
+package {{ RepoName }}
 
 import (
 {{- range .CodeImports }}
@@ -7,8 +7,8 @@ import (
 {{ end }}
 	pgx "github.com/jackc/pgx/v4"
 
-    "{{ ModuleName }}/connection"
-    "{{ ModuleName }}/entities"
+    "{{ ModuleName }}/{{ RepoName }}/connection"
+    "{{ ModuleName }}/{{ RepoName }}/entities"
 )
 
 // {{ .CodeName }}Repo contains data access methods for {{ .DisplayName }} items.

@@ -7,7 +7,7 @@ import (
 
 	pgx "github.com/jackc/pgx/v4"
 
-	"kcartlidge/app/data/support"
+	"kcartlidge/api/repo/support"
 )
 
 // AccountSetting is for table `account_setting` ("Account Setting").

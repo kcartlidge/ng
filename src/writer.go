@@ -18,8 +18,9 @@ const verbose = false
 type writer struct {
 	topFolder, entityFolder, repoFolder string
 	connectionFolder, supportFolder     string
+	apiFolder                           string
 	schema                              Schema
-	commandLine, module                 string
+	commandLine, module, repoName       string
 	connectionStringEnvArg              string
 	goFilesWritten                      []string
 }
@@ -29,17 +30,20 @@ func NewWriter(
 	module string,
 	commandLine string,
 	connectionStringEnvArg string,
-	schema Schema) writer {
+	schema Schema,
+	repoName string) writer {
 	w := writer{
 		topFolder:              path.Clean(folder),
-		entityFolder:           path.Join(folder, "entities"),
-		repoFolder:             path.Join(folder, "repos"),
-		connectionFolder:       path.Join(folder, "connection"),
-		supportFolder:          path.Join(folder, "support"),
+		entityFolder:           path.Join(folder, repoName, "entities"),
+		repoFolder:             path.Join(folder, repoName),
+		connectionFolder:       path.Join(folder, repoName, "connection"),
+		supportFolder:          path.Join(folder, repoName, "support"),
+		apiFolder:              path.Clean(folder),
 		module:                 module,
 		commandLine:            commandLine,
 		connectionStringEnvArg: connectionStringEnvArg,
 		schema:                 schema,
+		repoName:               repoName,
 		goFilesWritten:         []string{},
 	}
 	return w
@@ -57,6 +61,7 @@ func (w writer) WriteStuff() {
 	w.createEntityRepos()
 	w.createReadme()
 	w.createSQL()
+	w.createAPI()
 
 	w.initModules()
 	w.fetchModules()
@@ -138,6 +143,13 @@ func (w *writer) createSQL() {
 	fmt.Println("Creating SQL script")
 	filename := path.Join(w.topFolder, "postgres.sql")
 	w.writeFile(filename, "sql-scripts", w.schema)
+}
+
+func (w *writer) createAPI() {
+	fmt.Println("Creating stub API")
+	w.writeGoFile(path.Join(w.apiFolder, "main.go"), "main", w.schema)
+	w.writeGoFile(path.Join(w.apiFolder, "server.go"), "server", w.schema)
+	w.writeGoFile(path.Join(w.apiFolder, "middleware.go"), "middleware", w.schema)
 }
 
 func (w *writer) initModules() {

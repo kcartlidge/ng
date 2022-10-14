@@ -1,0 +1,156 @@
+package repo
+
+import (
+	pgx "github.com/jackc/pgx/v4"
+
+	"kcartlidge/api/repo/connection"
+	"kcartlidge/api/repo/entities"
+)
+
+// AccountRepo contains data access methods for Account items.
+//
+// Specific methods are added for indexed fields.
+// General-purpose methods cover unindexed ones.
+type AccountRepo struct {
+	repo
+}
+
+// ---------- Constructor ----------
+
+// NewAccountRepo creates an instance for database access.
+func NewAccountRepo(connection *connection.Connection) *AccountRepo {
+	r := AccountRepo{}
+	r.connection = connection
+	r.ResetConditions()
+	r.ResetSorting()
+	r.ResetLimitAndOffset()
+	return &r
+}
+
+// ---------- CRUD methods ----------
+
+// List returns all matching Account items.
+func (r *AccountRepo) List() ([]entities.Account, error) {
+	d := make([]entities.Account, 0)
+	cmd := "SELECT id,email_address,display_name,created_at,updated_at,deleted_at FROM account "
+	err := r.Execute(cmd, func(rows pgx.Rows) error {
+		if dd, err := entities.NewAccountFromRows(rows); err != nil {
+			return err
+		} else {
+			d = append(d, *dd)
+			return nil
+		}
+	})
+	return d, err
+}
+
+// Insert adds a new Account item.
+func (r *AccountRepo) Insert(item entities.Account) (int64, error) {
+	cmd := "INSERT INTO account (email_address,display_name,created_at,updated_at,deleted_at) "
+	cmd += "VALUES ($1,$2,$3,$4,$5) "
+	var p []interface{}
+	p = append(p, item.EmailAddress)
+	p = append(p, item.DisplayName)
+	p = append(p, item.CreatedAt)
+	p = append(p, item.UpdatedAt)
+	p = append(p, item.DeletedAt)
+	return r.ExecuteNonQuery(cmd, p...)
+}
+
+// Update modifies a Account item (all fields except primary keys, which
+// are still required anyway in order to know which items to update).
+func (r *AccountRepo) Update(id int64, item entities.Account) (int64, error) {
+	cmd := "UPDATE account "
+	cmd += "SET email_address=$1,display_name=$2,created_at=$3,updated_at=$4,deleted_at=$5 "
+	cmd += "WHERE id=$6 "
+
+	// Values to update
+	var p []interface{}
+	p = append(p, item.EmailAddress)
+	p = append(p, item.DisplayName)
+	p = append(p, item.CreatedAt)
+	p = append(p, item.UpdatedAt)
+	p = append(p, item.DeletedAt)
+
+	// Primary key restrictions
+	p = append(p, id)
+	return r.ExecuteNonQuery(cmd, p...)
+}
+
+// Delete removes a Account item.
+func (r *AccountRepo) Delete(id int64) (int64, error) {
+	cmd := "DELETE FROM account "
+	cmd += "WHERE id=$1 "
+	var p []interface{}
+	p = append(p, id)
+	return r.ExecuteNonQuery(cmd, p...)
+}
+
+// ---------- Paging ----------
+
+// WithLimit adds a restriction on the Account item(s) returned.
+// Overrides the package's MaxRows value (for this instance only).
+func (r *AccountRepo) WithLimit(value int) *AccountRepo {
+	r.limit = value
+	return r
+}
+
+// WithOffset skips the given number of Account item(s) in the result set.
+func (r *AccountRepo) WithOffset(value int) *AccountRepo {
+	r.offset = value
+	return r
+}
+
+// ---------- Typed filtering (only indexed fields) ----------
+
+// WhereId adds a filter for Id.
+func (r *AccountRepo) WhereId(operator string, value int64) *AccountRepo {
+	return r.Where("id", operator, value)
+}
+
+// WhereEmailAddress adds a filter for Email Address.
+func (r *AccountRepo) WhereEmailAddress(operator string, value string) *AccountRepo {
+	return r.Where("email_address", operator, value)
+}
+
+// ----------- Typed ordering (only indexed fields) -----------
+
+// SortById adds sorting by Id.
+func (r *AccountRepo) SortById() *AccountRepo {
+	return r.AddSorting("id", false)
+}
+
+// SortByEmailAddress adds sorting by Email Address.
+func (r *AccountRepo) SortByEmailAddress() *AccountRepo {
+	return r.AddSorting("email_address", false)
+}
+
+// ReverseById adds reverse sorting by Id.
+func (r *AccountRepo) ReverseById() *AccountRepo {
+	return r.AddSorting("id", true)
+}
+
+// ReverseByEmailAddress adds reverse sorting by Email Address.
+func (r *AccountRepo) ReverseByEmailAddress() *AccountRepo {
+	return r.AddSorting("email_address", true)
+}
+
+// ---------- Untyped filtering and ordering (any fields) ----------
+
+// Where adds a clause to the request.
+//
+// WARNING:
+// Prefer the predefined field-specific Where... functions as they use indexed fields.
+// Using this method instead is more flexible but may involve unindexed fields.
+// Use carefully/sparingly to avoid performance issues in large data sets.
+func (r *AccountRepo) Where(thing string, operator string, value interface{}) *AccountRepo {
+	r.addCondition(thing, operator, value)
+	return r
+}
+
+// AddSorting includes an ad-hoc sort by any valid column/thing.
+// Indexed fields have their own SortBy... variants.
+func (r *AccountRepo) AddSorting(thing string, descending bool) *AccountRepo {
+	r.addOrdering(thing, descending)
+	return r
+}
