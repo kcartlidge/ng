@@ -3,12 +3,26 @@
 ## Contents
 
 - [Running](#running)
+- [Regenerating](#regenerating)
 - [Entities](#entities)
 - [Repository](#repository)
 - [SQL Scripts](#sql-scripts)
 - [Example Usage](#example-usage)
 
 ## Running
+
+The API's main folder is the one containing this document.
+Navigate to here in your command prompt, build, and run.
+
+``` sh
+cd <folder>
+go build -o api
+./api
+```
+
+If you are using Windows remove `./` and just run `api`.
+
+## Regenerating
 
 The code was generated using NearGothic via the following command:
 
@@ -17,13 +31,18 @@ cd /Users/karl/source/go/ng/src
 ng -w -schema example -module kcartlidge/api -folder ../_example -repo repo
 ```
 
+- Please ensure the folders used if repeating these commands match your own system
+- Existing code should also be copied or committed to source control first
+  - This is because existing contents of the `-folder` are deleted when running
+  - For extra safety ensure your initial run *does not* include `-w`
+
 ## Entities
 
-| | Table | Display | JSON | Slug |
-| - | - | - | - | - |
-| [`Account`](./entities/account.go) | account | *Account* | account | account |
-| [`AccountSetting`](./entities/account-setting.go) | account_setting | *Account Setting* | accountSetting | account-setting |
-| [`Setting`](./entities/setting.go) | setting | *Setting* | setting | setting |
+| Struct | Table | Display | JSON | Slug |
+| --- | --- | --- | --- | --- |
+| [`Account`](./repo/entities/account.go) | account | *Account* | account | account |
+| [`AccountSetting`](./repo/entities/account-setting.go) | account_setting | *Account Setting* | accountSetting | account-setting |
+| [`Setting`](./repo/entities/setting.go) | setting | *Setting* | setting | setting |
 
 Each entity also has methods to:
 - convert a database row into an instance of the entity
@@ -50,6 +69,16 @@ Each entity also has methods to:
   - General purpose sorting and filtering (only intended for *unindexed* column usage)
     - `Where` adds a clause to the request
     - `AddSorting` adds an ad-hoc sort by any valid column/thing
+
+## SQL Scripts
+
+A PostgreSQL script containing SQL (to generate the entities in this repo) is also included.
+
+This is an emergency-use script and *does not* obviate the need for proper precautions/backups.
+In particular, it only contains the information extracted to generate the entities/repos.
+Any other information outside of that usage will not have been persisted.
+
+[The script is in the `postgres.sql` file](./postgres.sql).
 
 ## Example Usage
 

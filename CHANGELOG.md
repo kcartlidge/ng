@@ -5,6 +5,9 @@
   - Clear destination folder rather than remove it
     - Remove/recreate changes node id in some file systems
     - Clear/reuse maintains command line folder node id consistency
+  - Update generated README
+    - Clear up running/regenerating section
+    - Fix table for Golang preview (needed more `-`'s)
 - Unreleased
   - Standard repo files
   - Build scripts

@@ -36,6 +36,9 @@ export DB_CONNSTR="host=127.0.0.1 port=5432 dbname=example user=example password
 
 [Here's a Postgres SQL script for a (small) example database](./postgres.sql).
 
+Note that upon successfully running, the generated Go code will include its own `postgres.sql` file.
+That file will contain scripts suitable for recreating the database entities found/used when it ran.
+
 ## Running
 
 There are pre-built cross-platform binaries in the `src/builds` folder.
