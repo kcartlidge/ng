@@ -1,5 +1,10 @@
 # CHANGELOG
 
+- 2022-10-18
+  - First public changes
+  - Clear destination folder rather than remove it
+    - Remove/recreate changes node id in some file systems
+    - Clear/reuse maintains command line folder node id consistency
 - Unreleased
   - Standard repo files
   - Build scripts

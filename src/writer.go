@@ -71,12 +71,27 @@ func (w writer) WriteStuff() {
 }
 
 func (w *writer) clearOutputFolder() {
-	fmt.Println("Clearing destination folder")
-	check(os.RemoveAll(w.topFolder))
+	exists, err := Exists(w.topFolder)
+	check(err)
+	if exists {
+		fmt.Println("Clearing destination folder")
+		files, err := ioutil.ReadDir(w.topFolder)
+		check(err)
+		for _, f := range files {
+			p := path.Join(w.topFolder, f.Name())
+			if f.IsDir() {
+				check(os.RemoveAll(p))
+			} else {
+				check(os.Remove(p))
+			}
+		}
+	} else {
+		fmt.Println("Destination folder does not exist")
+	}
 }
 
 func (w *writer) createOutputFolders() {
-	fmt.Println("Ensuring destination folders exist")
+	fmt.Println("Ensuring destination folder/sub-folders exist")
 	check(os.MkdirAll(w.topFolder, 0755))
 	check(os.MkdirAll(w.supportFolder, 0755))
 	check(os.MkdirAll(w.entityFolder, 0755))
