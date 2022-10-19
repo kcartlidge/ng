@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
+	"io/fs"
 	"os"
-	"path"
 	"strings"
 	"text/template"
 	"time"
@@ -14,19 +14,20 @@ import (
 var (
 	//go:embed templates/*.tmpl
 	fsServer embed.FS
-
-	templateCache map[string]*template.Template = make(map[string]*template.Template)
+	cache    *template.Template
 )
 
 func (w *writer) getTemplatedData(data interface{}, templateName string) []byte {
-	if _, ok := templateCache[templateName]; !ok {
-		b, err := fsServer.ReadFile(path.Join("templates", templateName+".tmpl"))
+
+	if cache == nil {
+		tfs, err := fs.Sub(fsServer, "templates")
 		check(err)
-		src := string(b)
-		t := template.Must(template.New(templateName).Funcs(template.FuncMap{
-			"lower": strings.ToLower,
-			"upper": strings.ToUpper,
-			"now":   time.Now,
+
+		cache = template.Must(template.New(templateName).Funcs(template.FuncMap{
+			"lower":  strings.ToLower,
+			"upper":  strings.ToUpper,
+			"plural": toPlural,
+			"now":    time.Now,
 			"year": func() int {
 				return time.Now().Year()
 			},
@@ -94,6 +95,12 @@ func (w *writer) getTemplatedData(data interface{}, templateName string) []byte 
 			"CommandLine": func() string {
 				return w.commandLine
 			},
+			"UrlPrefix": func() string {
+				return "api"
+			},
+			"ApiVersion": func() string {
+				return "1.0.0"
+			},
 			"ConnectionStringEnvArg": func() string {
 				return w.connectionStringEnvArg
 			},
@@ -125,11 +132,10 @@ func (w *writer) getTemplatedData(data interface{}, templateName string) []byte 
 			"toUpdateListNoPrimaryKeysCSV":     toUpdateListNoPrimaryKeysCSV,
 			"columnIdxAfterPrimaryKeys":        columnIdxAfterPrimaryKeys,
 			"toCodeNameListCSV":                toCodeNameListCSV,
-		}).Parse(src))
-		templateCache[templateName] = t
+		}).ParseFS(tfs, "*.tmpl"))
 	}
 
 	var wr bytes.Buffer
-	check(templateCache[templateName].ExecuteTemplate(&wr, templateName, data))
+	check(cache.ExecuteTemplate(&wr, templateName, data))
 	return wr.Bytes()
 }

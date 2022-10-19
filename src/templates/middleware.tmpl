@@ -1,4 +1,8 @@
 {{ define "middleware" -}}
+/*
+{{ template "noedit" . -}}
+*/
+
 package main
 
 // This file is standard across all generated APIs.
@@ -33,9 +37,9 @@ func (s *Server) Logger(next http.Handler) http.Handler {
 	})
 }
 
-// enforceJSON middleware ensures JSON request and response content types.
+// EnforceJSON middleware ensures JSON request and response content types.
 // For a GET it uses the Accept header, otherwise it uses Content-Type.
-func (s *Server) enforceJSON(next http.Handler) http.Handler {
+func (s *Server) EnforceJSON(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// Must 'Accept' JSON.

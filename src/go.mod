@@ -2,7 +2,10 @@ module kcartlidge/ng
 
 go 1.18
 
-require github.com/jackc/pgx/v4 v4.17.2
+require (
+	github.com/gertd/go-pluralize v0.2.1
+	github.com/jackc/pgx/v4 v4.17.2
+)
 
 require (
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect

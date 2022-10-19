@@ -165,6 +165,7 @@ func (w *writer) createAPI() {
 	w.writeGoFile(path.Join(w.apiFolder, "main.go"), "main", w.schema)
 	w.writeGoFile(path.Join(w.apiFolder, "server.go"), "server", w.schema)
 	w.writeGoFile(path.Join(w.apiFolder, "middleware.go"), "middleware", w.schema)
+	w.writeGoFile(path.Join(w.apiFolder, "handlers.go"), "handlers", w.schema)
 }
 
 func (w *writer) initModules() {

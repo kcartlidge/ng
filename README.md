@@ -5,6 +5,8 @@ Automatic API generation is currently in progress.
 
 ## STATUS
 
+BETA - connections, entities, and repos are usable; API generation is ongoing
+
 It scans the database and generates code/scripts as detailed below.
 For this use case, it is stable and considered *beta* but unreleased.
 The automatic generation of an API is *in progress* (see the latest commits).
@@ -16,6 +18,7 @@ It's currently an almost empty server, expected to be completed this coming week
 # Contents
 
 - [Prerequisites](#prerequisites)
+  - [Expectations](#expectations)
 - [Running](#running)
 - [What Near Gothic does](#what-near-gothic-does)
 - [What gets created](#what-gets-created)
@@ -38,6 +41,26 @@ export DB_CONNSTR="host=127.0.0.1 port=5432 dbname=example user=example password
 
 Note that upon successfully running, the generated Go code will include its own `postgres.sql` file.
 That file will contain scripts suitable for recreating the database entities found/used when it ran.
+
+### Expectations
+
+Your database *must* follow certain conventions.
+This may change in the future, but currently the following applies:
+
+- TABLES
+  - Must have a primary key
+    - *Only one column is allowed (no composite keys)*
+      - This is not currently enforced but will be shortly
+      - Their use risks data corruption
+  - Names must be snaked-lowercase
+    - For example `another_thing`, not `AnotherThing` or `Another_Thing`
+  - May have comments, which are used when generating the API/entities
+- COLUMNS
+  - Names must be snaked-lowercase
+    - For example `account_id`, not `AccountID` or `accountid`
+  - Most common database column types are supported
+    - A full list will be made available once the first release is issued
+  - May have comments, which are used when generating the API/entities
 
 ## Running
 
@@ -74,12 +97,14 @@ EXAMPLE
 
 ## What gets created
 
-You get a folder with the following:
+You get a folder structure with the following:
 
 - Go module (with `go.mod` and `go.sum`)
 - Basic JSON API with middleware etc
+  - Currently just the `GET *` endpoints
+  - Includes server, handler, routing, and documentation
 - JSON dump file detailing what was scanned from the database
-  - Useful for your own further processing
+  - Useful for your own further automated processing
 - A set of entities, one per database table
   - SQL comments implemented as Go comments
   - Generated property comments
@@ -96,6 +121,21 @@ You get a folder with the following:
   - Comments, constraints, keys, defaults, and more
 
 There's [an example of the generated code](./_example) in the `_example` folder.
+And here's what it looks like when a generated API is run:
+
+```
+API v1.0.0
+
+GET    /api/accounts
+GET    /api/account-settings
+GET    /api/settings
+
+Server running at http://localhost:3000
+```
+
+The URL prefix (`/api`), port (`3000`), and version (`v1.0.0`) are fixed.
+To change them update the generated `main.go` file.
+Options to specify them during API generation will be provided in due course.
 
 ### Sample generated folder structure
 
@@ -121,6 +161,7 @@ Here's a high-level breakdown of what the files/folders contain.
   dump.json                    // JSON dump of the schema
   go.mod
   go.sum
+  handlers.go                  // handlers and their registration
   main.go                      // starting point of the stub API server
   middleware.go                // some API middleware
   postgres.sql                 // SQL to recreate the entities

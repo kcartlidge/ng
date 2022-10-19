@@ -1,15 +1,47 @@
 {{ define "main" -}}
+/*
+{{ template "noedit" . -}}
+*/
 
 package main
 
 import (
+  "fmt"
 	"log"
+	"os"
+)
+
+var (
+  port = 3000
+  version = "{{ ApiVersion }}"
 )
 
 func main() {
-	s := newServer("api/v1", 3000)
+  fmt.Println()
+  fmt.Printf("API v%s\n", version)
+  fmt.Println()
+
+  // Create a server.
+	s := NewServer("{{ UrlPrefix }}", port)
+
+  // Register middleware.
 	s.AddGlobalMiddleware(s.Logger)
 
+  // Add the API endpoints.
+	s.RegisterDefaultHandlers()
+
+  // And serve.
 	log.Fatalln(s.ListenAndServe())
+}
+
+// If there is an error, display it and quit.
+func check(err error) {
+	if err != nil {
+		fmt.Println()
+		fmt.Println("ERROR")
+		fmt.Println(err.Error())
+		fmt.Println()
+		os.Exit(1)
+	}
 }
 {{ end -}}

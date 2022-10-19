@@ -1,5 +1,16 @@
 # CHANGELOG
 
+- 2022-10-19
+  - API generation
+    - Handlers and routing
+      - Added the URL prefix support
+      - GET (all) for generated repos
+      - Display of registered routes
+    - Simplified template rendering and caching
+      - Uses a file system subfolder rather than a map
+    - Include standard auto-generated file warning in files
+    - Updated generated README
+  - Added pluralisation support
 - 2022-10-18
   - First public changes
   - Clear destination folder rather than remove it
