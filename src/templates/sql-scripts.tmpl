@@ -1,7 +1,8 @@
 {{- define "sql-scripts" -}}
 {{ $schema := . -}}
-
 /*
+{{ template "noedit" . }}
+
 WARNINGS
 
 This is a fallback script only, NOT a structural database backup.

@@ -14,12 +14,14 @@ type Schema struct {
 }
 
 type Table struct {
-	SchemaName  string `json:"schemaName"`
-	TableName   string `json:"tableName"`
-	CodeName    string `json:"codeName"`
-	DisplayName string `json:"displayName"`
-	JsonName    string `json:"jsonName"`
-	SlugName    string `json:"slugName"`
+	SchemaName        string `json:"schemaName"`
+	TableName         string `json:"tableName"`
+	CodeName          string `json:"codeName"`
+	DisplayName       string `json:"displayName"`
+	DisplayNamePlural string `json:"displayNamePlural"`
+	JsonName          string `json:"jsonName"`
+	SlugName          string `json:"slugName"`
+	SlugNamePlural    string `json:"slugNamePlural"`
 
 	Owner       string       `json:"owner"`
 	Comment     string       `json:"comment"`

@@ -63,20 +63,22 @@ func (s *scanner) scanTablesAndViews(db *pgx.Pool) {
 		check(rows.Scan(&tableName, &tableType, &canInsert, &comment))
 		fmt.Printf("Scanning %s `%s`\n", strings.ToLower(tableType), tableName)
 		table := Table{
-			SchemaName:  s.SchemaName,
-			TableName:   tableName,
-			CodeName:    toProper(tableName, false),
-			DisplayName: toProper(tableName, true),
-			JsonName:    toJsonName(tableName),
-			SlugName:    toSlug(tableName),
-			Owner:       s.SchemaName,
-			Comment:     strings.TrimSpace(comment.String),
-			TableType:   tableType,
-			IsUpdatable: strings.ToLower(canInsert) == "yes",
-			Columns:     s.scanColumns(db, tableName, strings.ToUpper(tableType) == "VIEW"),
-			Constraints: s.scanConstraints(db, tableName),
-			Indexes:     []Index{},
-			CodeImports: []string{},
+			SchemaName:        s.SchemaName,
+			TableName:         tableName,
+			CodeName:          toProper(tableName, false),
+			DisplayName:       toProper(tableName, true),
+			DisplayNamePlural: toPlural(toProper(tableName, true)),
+			JsonName:          toJsonName(tableName),
+			SlugName:          toSlug(tableName),
+			SlugNamePlural:    toPlural(toSlug(tableName)),
+			Owner:             s.SchemaName,
+			Comment:           strings.TrimSpace(comment.String),
+			TableType:         tableType,
+			IsUpdatable:       strings.ToLower(canInsert) == "yes",
+			Columns:           s.scanColumns(db, tableName, strings.ToUpper(tableType) == "VIEW"),
+			Constraints:       s.scanConstraints(db, tableName),
+			Indexes:           []Index{},
+			CodeImports:       []string{},
 		}
 		table.Indexes = s.scanIndexes(db, table)
 		needsTime := false

@@ -1,5 +1,9 @@
 {{- define "repos" -}}
-package repos
+/*
+{{ template "noedit" . -}}
+*/
+
+package {{ RepoName }}
 
 import (
 {{- range .CodeImports }}

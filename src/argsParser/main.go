@@ -61,7 +61,7 @@ type foundItem struct {
 }
 
 // New creates a new `ArgsParser` with the given arguments.
-// Normally these would be the `os.Args`` collection.
+// Normally these would be the `os.Args“ collection.
 func New(args []string) arguments {
 	_, fname := filepath.Split(os.Args[0])
 	cmdArgs := []string{fname}
@@ -123,10 +123,18 @@ func (a *arguments) ShowUsage() {
 	fmt.Printf("%s  %s", indentString, a.AppName)
 	if len(a.Flags) > 0 || len(a.Values) > 0 {
 		for _, k := range a.flagsOrder {
-			fmt.Printf(" -%s", k)
+			if a.required[k] {
+				fmt.Printf(" -%s", k)
+			} else {
+				fmt.Printf(" [-%s]", k)
+			}
 		}
 		for _, k := range a.valuesOrder {
-			fmt.Printf(" -%s <value>", k)
+			if a.required[k] {
+				fmt.Printf(" -%s <value>", k)
+			} else {
+				fmt.Printf(" [-%s <value>]", k)
+			}
 		}
 		fmt.Println()
 

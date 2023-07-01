@@ -1,4 +1,4 @@
-clear
+cls
 @echo off
 
 @echo Building Linux edition

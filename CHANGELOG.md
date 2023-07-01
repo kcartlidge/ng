@@ -1,5 +1,23 @@
 # CHANGELOG
 
+- 2023-07-02
+  - Added pluralisation support
+  - Only generate if tables found
+  - Include `DO NOT EDIT` at top of generated files
+  - Simplified generated `README.md` file
+  - Generate a `USING.md` file with instructions
+  - Simplified the template cache
+  - Move some generated code into subfolders
+  - Remove the generation of `go.mod` and `go.sum`
+    - This is *not* a module; it is a *nested* package
+    - The module was useful during initial development
+- 2022-10-18
+  - Clear destination folder rather than remove it
+    - Remove/recreate changes node id in some file systems
+    - Clear/reuse maintains command line folder node id consistency
+  - Update generated README
+    - Clear up running/regenerating section
+    - Fix table for Golang preview (needed more `-`'s)
 - Unreleased
   - Standard repo files
   - Build scripts

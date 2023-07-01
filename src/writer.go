@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -19,7 +20,7 @@ type writer struct {
 	topFolder, entityFolder, repoFolder string
 	connectionFolder, supportFolder     string
 	schema                              Schema
-	commandLine, module                 string
+	commandLine, module, repoName       string
 	connectionStringEnvArg              string
 	goFilesWritten                      []string
 }
@@ -29,17 +30,19 @@ func NewWriter(
 	module string,
 	commandLine string,
 	connectionStringEnvArg string,
-	schema Schema) writer {
+	schema Schema,
+	repoName string) writer {
 	w := writer{
 		topFolder:              path.Clean(folder),
-		entityFolder:           path.Join(folder, "entities"),
-		repoFolder:             path.Join(folder, "repos"),
-		connectionFolder:       path.Join(folder, "connection"),
-		supportFolder:          path.Join(folder, "support"),
+		entityFolder:           path.Join(folder, repoName, "entities"),
+		repoFolder:             path.Join(folder, repoName),
+		connectionFolder:       path.Join(folder, repoName, "connection"),
+		supportFolder:          path.Join(folder, repoName, "support"),
 		module:                 module,
 		commandLine:            commandLine,
 		connectionStringEnvArg: connectionStringEnvArg,
 		schema:                 schema,
+		repoName:               repoName,
 		goFilesWritten:         []string{},
 	}
 	return w
@@ -56,22 +59,37 @@ func (w writer) WriteStuff() {
 	w.createRepo()
 	w.createEntityRepos()
 	w.createReadme()
+	w.createUsing()
 	w.createSQL()
-
-	w.initModules()
-	w.fetchModules()
-	w.tidyModules()
 
 	w.applyFormatting()
 }
 
 func (w *writer) clearOutputFolder() {
-	fmt.Println("Clearing destination folder")
-	check(os.RemoveAll(w.topFolder))
+	exists, err := Exists(w.repoFolder)
+
+	log.Println(w.repoFolder)
+
+	check(err)
+	if exists {
+		fmt.Println("Clearing target folder")
+		files, err := ioutil.ReadDir(w.repoFolder)
+		check(err)
+		for _, f := range files {
+			p := path.Join(w.repoFolder, f.Name())
+			if f.IsDir() {
+				check(os.RemoveAll(p))
+			} else {
+				check(os.Remove(p))
+			}
+		}
+	} else {
+		fmt.Println("Target folder does not exist")
+	}
 }
 
 func (w *writer) createOutputFolders() {
-	fmt.Println("Ensuring destination folders exist")
+	fmt.Println("Ensuring target folder/sub-folders exist")
 	check(os.MkdirAll(w.topFolder, 0755))
 	check(os.MkdirAll(w.supportFolder, 0755))
 	check(os.MkdirAll(w.entityFolder, 0755))
@@ -81,7 +99,7 @@ func (w *writer) createOutputFolders() {
 
 func (w *writer) createDumpFile() {
 	fmt.Println("Writing JSON dump file")
-	filename := path.Join(w.topFolder, "dump.json")
+	filename := path.Join(w.repoFolder, "dump.json")
 	check(ioutil.WriteFile(filename, w.schema.ToJSON(), fs.ModePerm))
 }
 
@@ -130,30 +148,20 @@ func (w *writer) createEntityRepos() {
 
 func (w *writer) createReadme() {
 	fmt.Println("Writing README.md")
-	filename := path.Join(w.topFolder, "README.md")
+	filename := path.Join(w.repoFolder, "README.md")
 	w.writeFile(filename, "readme", w.schema)
+}
+
+func (w *writer) createUsing() {
+	fmt.Println("Writing USING.md")
+	filename := path.Join(w.repoFolder, "USING.md")
+	w.writeFile(filename, "using", w.schema)
 }
 
 func (w *writer) createSQL() {
 	fmt.Println("Creating SQL script")
-	filename := path.Join(w.topFolder, "postgres.sql")
+	filename := path.Join(w.repoFolder, "postgres.sql")
 	w.writeFile(filename, "sql-scripts", w.schema)
-}
-
-func (w *writer) initModules() {
-	fmt.Println("Creating Go module")
-	w.runCmd(true, w.topFolder, "go", "mod", "init", w.module)
-}
-
-func (w *writer) fetchModules() {
-	fmt.Println("Fetching Go modules")
-	w.runCmd(true, w.topFolder, "go", "get", "github.com/jackc/pgx/v4")
-	w.runCmd(true, w.topFolder, "go", "get", "github.com/jackc/pgx/v4/pgxpool")
-}
-
-func (w *writer) tidyModules() {
-	fmt.Println("Tidying Go modules")
-	w.runCmd(true, w.topFolder, "go", "mod", "tidy")
 }
 
 func (w *writer) runCmd(display bool, folder string, command string, args ...string) {

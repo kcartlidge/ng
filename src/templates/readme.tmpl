@@ -1,26 +1,35 @@
 {{- define "readme" -}}
 # {{ ModuleName }}
 
+```
+{{ template "noedit" . -}}
+```
+
 ## Contents
 
-- [Running](#running)
+- [Regenerating](#regenerating)
 - [Entities](#entities)
 - [Repository](#repository)
 - [SQL Scripts](#sql-scripts)
-- [Example Usage](#example-usage)
 
-## Running
+## Regenerating
 
 The code was generated using NearGothic via the following command:
 
 ``` sh
+cd {{ CurrentFolder }}
 {{ CommandLine }}
 ```
 
+- If repeating these commands please ensure the folders used match your own system
+- Existing code should also be copied or committed to source control first
+  - This is because existing contents of the `-folder` are deleted when running
+  - For extra safety ensure your initial run *does not* include `-w`
+
 ## Entities
 
-| | Table | Display | JSON | Slug |
-| - | - | - | - | - |
+| Struct | Table | Display | JSON | Slug |
+| --- | --- | --- | --- | --- |
 {{- range .Tables }}
 | [`{{ .CodeName }}`](./entities/{{ .SlugName }}.go) | {{ .TableName }} | *{{ .DisplayName }}* | {{ .JsonName }} | {{ .SlugName }} |
 {{- end }}
@@ -51,58 +60,13 @@ Each entity also has methods to:
     - `Where` adds a clause to the request
     - `AddSorting` adds an ad-hoc sort by any valid column/thing
 
-## Example Usage
+## SQL Scripts
 
-For illustrative purposes only; does not use this code-base.
+A PostgreSQL script containing SQL (to generate the entities in this repo) is also included.
 
-``` go
-package main
+This is an emergency-use script and *does not* obviate the need for proper precautions/backups.
+In particular, it only contains the information extracted to generate the entities/repos.
+Any other information outside of that usage will not have been persisted.
 
-import (
-  "fmt"
-  "os"
-
-  "example/data/connection"
-  "example/data/entities"
-  "example/data/repos"
-)
-
-func main() {
-  // Sample entity creation.
-  customer := entities.NewCustomer()
-
-  // Set a non-nullable field.
-  customer.EmailAddress = "email@example.com"
-
-  // Set a nullable field.
-  // As it is nullable, use '&'.
-  userInput := "something-that-is-too-long-for-a-16-character-field"
-  customer.VerificationCode = &userInput
-
-  // Validate.
-  // This will show a collection of issues, with one entry:
-  //   ["Verification Code cannot be longer than 16."]
-  fmt.Println("Issues :", customer.Validate())
-
-  // Get the connection string details.
-  connStr := os.Getenv("{{ ConnectionStringEnvArg }}")
-  if len(connStr) == 0 {
-    fmt.Println("Need a {{ ConnectionStringEnvArg }} environment variable connection string!")
-    os.Exit(1)
-  }
-
-  // Open a connection.
-  // The generated code calls log.Fatal with a suitable message if this errors.
-  conn := connection.NewConnection(connStr)
-
-  // Sample repository usage.
-  customerRepo := repos.NewCustomerRepo(conn)
-  customers, err := customerRepo.List()
-  if err != nil {
-    fmt.Println("Unable to fetch the customer list")
-  } else {
-    fmt.Println(len(customers))
-  }
-}
-```
+[The script is in the `postgres.sql` file](./postgres.sql).
 {{ end -}}

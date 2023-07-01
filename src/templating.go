@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
-	"path"
+	"io/fs"
+	"os"
 	"strings"
 	"text/template"
 	"time"
@@ -13,19 +14,20 @@ import (
 var (
 	//go:embed templates/*.tmpl
 	fsServer embed.FS
-
-	templateCache map[string]*template.Template = make(map[string]*template.Template)
+	cache    *template.Template
 )
 
 func (w *writer) getTemplatedData(data interface{}, templateName string) []byte {
-	if _, ok := templateCache[templateName]; !ok {
-		b, err := fsServer.ReadFile(path.Join("templates", templateName+".tmpl"))
+
+	if cache == nil {
+		tfs, err := fs.Sub(fsServer, "templates")
 		check(err)
-		src := string(b)
-		t := template.Must(template.New(templateName).Funcs(template.FuncMap{
-			"lower": strings.ToLower,
-			"upper": strings.ToUpper,
-			"now":   time.Now,
+
+		cache = template.Must(template.New(templateName).Funcs(template.FuncMap{
+			"lower":  strings.ToLower,
+			"upper":  strings.ToUpper,
+			"plural": toPlural,
+			"now":    time.Now,
 			"year": func() int {
 				return time.Now().Year()
 			},
@@ -85,6 +87,11 @@ func (w *writer) getTemplatedData(data interface{}, templateName string) []byte 
 				}
 				return txt
 			},
+			"CurrentFolder": func() string {
+				cwd, err := os.Getwd()
+				check(err)
+				return cwd
+			},
 			"CommandLine": func() string {
 				return w.commandLine
 			},
@@ -96,6 +103,9 @@ func (w *writer) getTemplatedData(data interface{}, templateName string) []byte 
 			},
 			"ModuleName": func() string {
 				return w.module
+			},
+			"RepoName": func() string {
+				return w.repoName
 			},
 			"PostgresFuncType": func(goType string) string {
 				if len(goType) < 2 {
@@ -116,11 +126,10 @@ func (w *writer) getTemplatedData(data interface{}, templateName string) []byte 
 			"toUpdateListNoPrimaryKeysCSV":     toUpdateListNoPrimaryKeysCSV,
 			"columnIdxAfterPrimaryKeys":        columnIdxAfterPrimaryKeys,
 			"toCodeNameListCSV":                toCodeNameListCSV,
-		}).Parse(src))
-		templateCache[templateName] = t
+		}).ParseFS(tfs, "*.tmpl"))
 	}
 
 	var wr bytes.Buffer
-	check(templateCache[templateName].ExecuteTemplate(&wr, templateName, data))
+	check(cache.ExecuteTemplate(&wr, templateName, data))
 	return wr.Bytes()
 }

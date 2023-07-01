@@ -1,0 +1,89 @@
+{{- define "using" -}}
+# Using {{ ModuleName }}
+
+```
+{{ template "noedit" . -}}
+```
+
+## Contents
+
+- [Requirements](#requirements)
+- [Example Usage](#example-usage)
+- [Database Changes](#database-changes)
+
+## Requirements
+
+This is code which should be nested *inside* your application.
+It's *not* a stand-alone module, though it *is* self-contained.
+
+If you haven't yet created your parent module, start it (using modules):
+
+``` sh
+mkdir <parent>
+cd <parent>
+go mod init <parent_module>
+go mod tidy
+```
+
+Add the database access code's dependencies to your parent module:
+
+``` sh
+cd <parent>
+go get github.com/jackc/pgx/v4
+go mod tidy
+```
+
+## Example Usage
+
+Once you've created the code (nested within your parent module) usage is simple.
+Here's an example which shows the basics of connecting/querying:
+
+### Your parent module's main.go file:
+
+``` go
+package main
+
+import (
+	"fmt"
+	"{{ ModuleName }}"
+	"{{ ModuleName }}/connection"
+	"log"
+	"os"
+)
+
+func main() {
+	fmt.Println()
+	fmt.Println("TESTING BY FETCHING DATA")
+	fmt.Println()
+
+	// Connect using the connection string in the "{{ ConnectionStringEnvArg }}" environment variable.
+	envName := "{{ ConnectionStringEnvArg }}"
+	connectionString, hasEnv := os.LookupEnv(envName)
+	if !hasEnv {
+		log.Fatalf("Environment variable `%s` not found", envName)
+	}
+	conn := connection.NewConnection(connectionString)
+
+	// Start a new repo and fetch the first 3 accounts in reverse email address order.
+	// These lines will not build if your database tables differ (they probably do).
+	ar := repo.NewAccountRepo(conn)
+	data, err := ar.WhereId("<", 4).ReverseByEmailAddress().List()
+
+	// Show the result.
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	fmt.Println(data)
+}
+```
+
+(With that example `main.go` try `go run main.go` to test it.)
+
+## Database Changes
+
+Do your database changes however you normally would.
+When you're ready, re-run the `ng` command to regenerate the database access code.
+
+*This will totally replace the contents of the subfolder. Your parent module will not be affected.*
+
+{{ end -}}

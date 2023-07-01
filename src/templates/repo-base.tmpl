@@ -1,5 +1,9 @@
 {{- define "repo-base" -}}
-package repos
+/*
+{{ template "noedit" . -}}
+*/
+
+package {{ RepoName }}
 
 import (
 "errors"

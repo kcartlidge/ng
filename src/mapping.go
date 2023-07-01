@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
+	pluralize "github.com/gertd/go-pluralize"
 	"strings"
 )
+
+var plural = pluralize.NewClient()
 
 func mapPostgresTypeToGo(postgresDataType string) string {
 	switch strings.ToLower(postgresDataType) {
@@ -102,6 +105,11 @@ func toProper(value string, forDisplay bool) string {
 		s = "Id"
 	}
 	return s
+}
+
+// toPlural returns a pluralised version of the given text
+func toPlural(value string) string {
+	return plural.Plural(value)
 }
 
 // toColumnNameListCSV returns the database column names comma-delimited
