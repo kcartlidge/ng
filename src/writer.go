@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/fs"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -67,9 +66,6 @@ func (w writer) WriteStuff() {
 
 func (w *writer) clearOutputFolder() {
 	exists, err := Exists(w.repoFolder)
-
-	log.Println(w.repoFolder)
-
 	check(err)
 	if exists {
 		fmt.Println("Clearing target folder")

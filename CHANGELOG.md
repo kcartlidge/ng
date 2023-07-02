@@ -1,6 +1,9 @@
 # CHANGELOG
 
 - 2023-07-02
+  - Extra notes on the usage display
+  - Clearer and simpler command arguments
+- 2023-07-01
   - Added pluralisation support
   - Only generate if tables found
   - Include `DO NOT EDIT` at top of generated files

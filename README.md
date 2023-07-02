@@ -25,7 +25,7 @@ Go is fast. On most modern machines even with larger collections of tables it sh
 - [Running](#running)
 - [How Near Gothic works](#how-near-gothic-works)
   - [Generated folder structure](#generated-folder-structure)
-  - [Example Code](#example-code)
+  - [Example of using the generated code](#example-of-using-the-generated-code)
 - [Building cross-platform binaries](#building-cross-platform-binaries)
 
 ## Prerequisites
@@ -71,20 +71,30 @@ When run they will display the command requirements with details and examples (a
 
 ```
 USAGE
-  ng.exe [-w] [-env <value>] [-schema <value>] -module <value> -folder <value> -repo <value>
+  ng [-w] [-env <value>] [-schema <value>] -folder <value> -module <value> -repo <value>
 
 ARGUMENTS
   -w                  overwrite any existing destination folder?
   -env <value>        connection string environment variable (default `DB_CONNSTR`)
   -schema <value>     the Postgres database schema to scan (default `public`)
-  -module <value>  *  the Go module for *created* code (eg `kcartlidge/app/data`)
-  -folder <value>  *  *parent* module folder, either relative or absolute
-  -repo <value>    *  name of the subfolder for generated code (eg `data`)
+  -folder <value>  *  the *parent* module's folder (eg `~/Source/App`)
+  -module <value>  *  the *parent* Go module name (eg `kcartlidge/app`)
+  -repo <value>    *  the short package name for generated code (eg `data`)
 
   * means the argument is required
 
 EXAMPLE
-  ng -w -env DB_CONNSTR -schema example -module kcartlidge/app/data -folder ~/example -repo data
+  ng -w -env DB_CONNSTR -schema example -module kcartlidge/app -folder ~/Source/App -repo Data
+
+The `env` connection string should be suitable for `jackc/pgx`.
+
+Generated code is placed in a new (`repo`) folder within the
+`parent` folder. For the example above `~/Source/App` + `Data`
+means code goes into `~/Source/App/Data`.
+
+The new code will assume it is in a package named as `module`
+plus `repo` (in lower case). For the example above, that means
+`kcartlidge/app` + `Data` gives ``kcartlidge/app/data`.
 ```
 
 The created `README.md` file will include the command you used when generating the code.
@@ -92,15 +102,12 @@ The created `README.md` file will include the command you used when generating t
 ## How Near Gothic works
 
 - It uses the named environment variable (`-env`) to connect to the database
-  - It then scans the provided PostgreSQL schema (`-schema`)
-- It generates code *nested within* the `-folder`
-  - The created nested subfolder is named according to`-repo`
-  - Generated code is within a module named as per `-module`
-  - If overwrite is specified (`-w`) it replaces any existing file(s)
+- It scans the provided PostgreSQL schema (`-schema`)
+- It generates code *in a subfolder* of your app
 
 You get a folder structure with the following:
 
-- Well-commented code
+- Commented code
 - A set of entities, one per database table
   - SQL table comments implemented as Go comments
   - Generated property comments
@@ -121,15 +128,15 @@ You get a folder structure with the following:
 
 ### Generated folder structure
 
-Here's a high-level breakdown of what the files/folders contain.
+Here's a high-level breakdown of what the files/folders contain, based on the example values used above for the folder, module, and repo package name.
 
 ```
-/app                           // target folder (parent module)
+~/Source/App                   // target `folder` (parent module)
   go.mod                       // example parent module file
   go.sum                       // example parent module file
   main.go                      // example parent module file
 
-  /data                        // root of the generated content
+  /data                        // root (`repo`) of the generated content
     /connection
       connection.go            // class for db connection
     /entities
@@ -148,7 +155,7 @@ Here's a high-level breakdown of what the files/folders contain.
     USING.md                   // details of how to use the code
 ```
 
-### Example Code
+### Example of using the generated code
 
 NearGothic does not create modules.
 It generates a stand-alone package written into a subfolder of your app's module.

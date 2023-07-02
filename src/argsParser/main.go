@@ -27,6 +27,9 @@ type arguments struct {
 	// Values holds the key/value command arguments and their value when parsed.
 	Values map[string]string
 
+	// Any extra notes to explain usage.
+	Notes []string
+
 	// Indent (defaults to 0) pushes the displayed output rightward on the console.
 	Indent int
 
@@ -72,6 +75,7 @@ func New(args []string) arguments {
 		Example:     "",
 		Flags:       make(map[string]bool),
 		Values:      make(map[string]string),
+		Notes:       []string{},
 		Indent:      0,
 		HasIssues:   false,
 		IsParsed:    false,
@@ -111,6 +115,11 @@ func (a *arguments) AddValue(name string, required bool, defaultValue string, he
 	a.required[name] = required
 	a.colWidth = int(math.Max(float64(a.colWidth), float64(len(name))))
 	a.valuesOrder = append(a.valuesOrder, name)
+}
+
+// AddNote adds a line of notes.
+func (a *arguments) AddNote(note string) {
+	a.Notes = append(a.Notes, note)
 }
 
 // ShowUsage displays the usage details along with flags, values, and their defaults.
@@ -191,6 +200,16 @@ func (a *arguments) ShowUsage() {
 	if len(a.Example) > 0 {
 		fmt.Printf("%sEXAMPLE\n", indentString)
 		fmt.Printf("%s  %s %s\n", indentString, a.AppName, a.Example)
+		fmt.Println()
+	}
+
+	// And finally show any included notes.
+	if len(a.Notes) > 0 {
+		fmt.Println()
+		for _, n := range a.Notes {
+			fmt.Printf("%s%s\n", indentString, n)
+		}
+		fmt.Println()
 		fmt.Println()
 	}
 }

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"kcartlidge/ng/argsParser"
 	"os"
+	"path"
+	"strings"
 	"time"
 )
 
@@ -19,14 +21,25 @@ func main() {
 
 	// Command arguments.
 	var a = argsParser.New(os.Args)
-	a.Example = "-w -env DB_CONNSTR -schema example -module kcartlidge/app/data -folder ~/example -repo data"
+	a.Example = "-w -env DB_CONNSTR -schema example -module kcartlidge/app -folder ~/Source/App -repo Data"
 	a.AddFlag("w", false, false, "overwrite any existing destination folder?")
 
 	a.AddValue("env", false, "DB_CONNSTR", "connection string environment variable")
 	a.AddValue("schema", false, "public", "the Postgres database schema to scan")
-	a.AddValue("module", true, "", "the Go module for *created* code (eg `kcartlidge/app/data`)")
-	a.AddValue("folder", true, "", "*parent* module folder, either relative or absolute")
-	a.AddValue("repo", true, "", "name of the subfolder for generated code (eg `data`)")
+	a.AddValue("folder", true, "", "the *parent* module's folder (eg `~/Source/App`)")
+	a.AddValue("module", true, "", "the *parent* Go module name (eg `kcartlidge/app`)")
+	a.AddValue("repo", true, "", "the short folder name for generated code (eg `Data`)")
+
+	a.AddNote("The `env` connection string should be suitable for `jackc/pgx`.")
+	a.AddNote("")
+	a.AddNote("Generated code is placed in a new (`repo`) folder within the")
+	a.AddNote("`parent` folder. For the example above `~/Source/App` + `Data`")
+	a.AddNote("means code goes into `~/Source/App/Data`.")
+	a.AddNote("")
+	a.AddNote("The new code will assume it is in a package named as `module`")
+	a.AddNote("plus `repo` (in lower case). For the example above, that means")
+	a.AddNote("`kcartlidge/app` + `Data` gives ``kcartlidge/app/data`.")
+
 	a.ShowUsage()
 	a.Parse()
 	if a.HasIssues {
@@ -38,9 +51,10 @@ func main() {
 	overwrite := a.Flags["w"]
 	env := a.Values["env"]
 	schema := a.Values["schema"]
-	module := a.Values["module"]
+	parentModule := a.Values["module"]
 	folder := a.Values["folder"]
-	repoName := a.Values["repo"]
+	repoName := strings.ToLower(a.Values["repo"])
+	module := path.Join(parentModule, repoName)
 	fmt.Println()
 	fmt.Println("Overwrite existing?  :", overwrite)
 	fmt.Println()
