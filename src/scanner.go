@@ -53,7 +53,7 @@ func (s *scanner) scanTablesAndViews(db *pgx.Pool) {
 		"FROM   information_schema.tables, pg_catalog.pg_class pgc " +
 		"WHERE  table_schema = $1 " +
 		"AND    table_name = pgc.relname " +
-		"AND    table_type='BASE TABLE' " +
+		"AND    table_type IN ('BASE TABLE','VIEW') " +
 		"ORDER  BY table_name;"
 	rows, err := db.Query(bg, statement, s.SchemaName)
 	check(err)
@@ -61,6 +61,9 @@ func (s *scanner) scanTablesAndViews(db *pgx.Pool) {
 	for rows.Next() {
 		tableName, tableType, canInsert, comment := "", "", "", sql.NullString{}
 		check(rows.Scan(&tableName, &tableType, &canInsert, &comment))
+		if tableType == "VIEW" {
+			canInsert = "no"
+		}
 		fmt.Printf("Scanning %s `%s`\n", strings.ToLower(tableType), tableName)
 		table := Table{
 			SchemaName:        s.SchemaName,

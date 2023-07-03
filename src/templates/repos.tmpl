@@ -146,7 +146,7 @@ func (r *{{ $codename }}Repo) WithOffset(value int) *{{ $codename }}Repo {
 }
 
 
-// ---------- Typed filtering (only indexed fields) ----------
+// ---------- Typed filtering (only indexed fields for tables) ----------
 
 {{- range .Columns }}
 {{ if .CanFilter }}
@@ -158,7 +158,7 @@ func (r *{{ $codename }}Repo) Where{{ .CodeName }}(operator string, value {{ .Da
 {{ end }}
 
 
-// ----------- Typed ordering (only indexed fields) -----------
+// ----------- Typed ordering (only indexed fields for tables) -----------
 
 {{- range .Columns }}
 {{ if .CanFilter }}
@@ -179,7 +179,7 @@ func (r *{{ $codename }}Repo) ReverseBy{{ .CodeName }}() *{{ $codename }}Repo {
 {{ end }}
 
 
-// ---------- Untyped filtering and ordering (any fields) ----------
+// ---------------- Untyped filtering and ordering -----------------
 
 // Where adds a clause to the request.
 //

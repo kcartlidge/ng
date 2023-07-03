@@ -44,7 +44,11 @@ func (w *writer) getTemplatedData(data interface{}, templateName string) []byte 
 				return dtm.Format("Monday January 2, 2006 at 15:04 (MST)")
 			},
 			"TableComment": func(tbl Table) string {
-				txt := fmt.Sprintf("// %s is for table `%s`", tbl.CodeName, tbl.TableName)
+				tableType := "table"
+				if tbl.TableType != "BASE TABLE" {
+					tableType = strings.ToLower(tbl.TableType)
+				}
+				txt := fmt.Sprintf("// %s is for %s `%s`", tbl.CodeName, tableType, tbl.TableName)
 				if tbl.CodeName != tbl.DisplayName {
 					txt += fmt.Sprintf(" (\"%s\")", tbl.DisplayName)
 				}

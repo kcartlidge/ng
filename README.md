@@ -197,25 +197,30 @@ func main() {
 
 	// Start a new repo and fetch the first 3 accounts in reverse email address order.
 	// These lines will not build if your database tables differ (they probably do).
+	fmt.Println("FIRST FEW ACCOUNTS")
 	ar := data.NewAccountRepo(conn)
-	d, err := ar.WhereId("<", 4).ReverseByEmailAddress().List()
-
-	// Show the result.
-	fmt.Println()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	fmt.Println("First few accounts:")
-	fmt.Println(d)
-	fmt.Println()
+	show(ar.WhereId("<", 4).ReverseByEmailAddress().List())
 
 	// Deal with a specific account, using a new repo to reset the filter/sort.
 	// Could also call ar.ResetConditions() and/or ar.ResetSorting() instead.
+	fmt.Println("FIND ACCOUNT")
 	ar = data.NewAccountRepo(conn)
-	acc, err := ar.WhereEmailAddress("=", "email@example.com").List()
-	if err == nil && len(acc) > 0 {
-		fmt.Printf("`%s` is for account %v", acc[0].EmailAddress, acc[0].Id)
+	show(ar.WhereEmailAddress("=", "email@example.com").List())
+
+	// Query a view. The repo will not contain any insert/update/delete code.
+	// Important: columns in views will always be nullable according to Postgres.
+	// This applies both for querying and for the results.
+	fmt.Println("QUERY A VIEW")
+	aar := data.NewActiveAccountRepo(conn)
+	notEmail := "email@example.com"
+	show(aar.WhereEmailAddress("<>", &notEmail).SortByDisplayName().List())
+}
+
+func show(data interface{}, err error) {
+	if err != nil {
+		log.Fatal(err.Error())
 	}
+	fmt.Println(data)
 	fmt.Println()
 }
 ```
