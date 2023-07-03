@@ -152,3 +152,19 @@ COMMENT ON CONSTRAINT fk_account_setting_account ON example.account_setting
     IS 'Link to the account this value is for.';
 COMMENT ON CONSTRAINT fk_account_setting_setting ON example.account_setting
     IS 'Link to the setting this value is for.';
+
+
+-- VIEW (active_account)
+
+CREATE OR REPLACE VIEW example.active_account
+ AS
+ SELECT a.id AS account_id,
+    a.email_address,
+    a.display_name
+   FROM example.account a
+  WHERE a.deleted_at IS NULL;
+
+ALTER TABLE example.active_account
+    OWNER TO example;
+COMMENT ON VIEW example.active_account
+    IS 'Sample view listing basic details for accounts NOT soft-deleted.';

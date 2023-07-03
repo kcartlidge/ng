@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -114,8 +113,8 @@ func (w *writer) createEntities() {
 				hasPrimary = true
 			}
 		}
-		if !hasPrimary {
-			check(errors.New(fmt.Sprintf("%s.%s has no primary key", w.schema.SchemaName, table.TableName)))
+		if table.IsUpdatable && !hasPrimary {
+			check(fmt.Errorf("%s.%s has no primary key", w.schema.SchemaName, table.TableName))
 		}
 		filename := path.Join(w.entityFolder, table.SlugName+".go")
 		w.writeGoFile(filename, "entities", table)

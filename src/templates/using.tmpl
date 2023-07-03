@@ -67,13 +67,15 @@ func main() {
 	// Start a new repo and fetch the first 3 accounts in reverse email address order.
 	// These lines will not build if your database tables differ (they probably do).
 	ar := repo.NewAccountRepo(conn)
-	data, err := ar.WhereId("<", 4).ReverseByEmailAddress().List()
+	show(ar.WhereId("<", 4).ReverseByEmailAddress().List())
+}
 
-	// Show the result.
+func show(data interface{}, err error) {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	fmt.Println(data)
+	fmt.Println()
 }
 ```
 

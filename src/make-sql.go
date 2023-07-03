@@ -12,28 +12,31 @@ func (t Table) GetTableSQL() string {
 
 	schemaName := t.SchemaName
 	tableName := t.TableName
-
 	txt := "\n"
-	txt += fmt.Sprintf("DROP TABLE %s.%s CASCADE;\n", schemaName, tableName)
-	txt += "\n"
-	txt += fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s.%s (\n", schemaName, tableName)
 
-	first := true
-	for _, c := range t.Columns {
-		if !first {
-			txt += ",\n"
+	if t.TableType != "BASE TABLE" {
+		txt += fmt.Sprintf("-- %s %s.%s has NOT been scripted.\n", t.TableType, schemaName, tableName)
+	} else {
+		txt += fmt.Sprintf("DROP TABLE %s.%s CASCADE;\n", schemaName, tableName)
+		txt += "\n"
+		txt += fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s.%s (\n", schemaName, tableName)
+
+		first := true
+		for _, c := range t.Columns {
+			if !first {
+				txt += ",\n"
+			}
+			first = false
+			txt += t.getColumnSQL(c)
 		}
-		first = false
-		txt += t.getColumnSQL(c)
+
+		txt += t.getConstraintSQL()
+
+		txt += "\n);\n\n"
+		txt += fmt.Sprintf("ALTER TABLE %s.%s OWNER TO %s;\n", schemaName, tableName, t.Owner)
+
+		txt += t.getCommentsSQL()
 	}
-
-	txt += t.getConstraintSQL()
-
-	txt += "\n);\n\n"
-	txt += fmt.Sprintf("ALTER TABLE %s.%s OWNER TO %s;\n", schemaName, tableName, t.Owner)
-
-	txt += t.getCommentsSQL()
-
 	return txt
 }
 

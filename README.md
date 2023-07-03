@@ -133,8 +133,8 @@ Here's a high-level breakdown of what the files/folders contain, based on the ex
 ```
 ~/Source/App                   // target `folder` (parent module)
   go.mod                       // example parent module file
-  go.sum                       // example parent module file
-  main.go                      // example parent module file
+  go.sum                       // example parent module sum file
+  main.go                      // example parent code file
 
   /data                        // root (`repo`) of the generated content
     /connection
@@ -165,11 +165,11 @@ The example below is using a generated repo (`kcartlidge/app/data`) derived from
 
 It shows the `connection` being obtained by a connection string stored in an environment variable. It then uses that to create an instance of an `AccountRepo` via which it fetches the first 3 accounts sorted by the email address in reverse alphabetical order (for no obvious reason other than to show the somewhat-fluent query capability).
 
-Repos are automatically created for each table found in your Postgres schema. Column types are mapped to Go types. SQL comments show as Go comments. Basic validation based on nullability and length are included. And utility methods for both filtering and sorting are added for each column that has an index (non-specific alternatives are also provided).
+Repos are automatically created for each table found in your Postgres schema. Column types are mapped to Go types. SQL comments show as Go comments. Basic validation based on nullability and length is included, and utility methods for both filtering and sorting are added for each column that has an index (non-column-specific alternatives are also provided).
 
 **Important note:** repo instances retain any filters/sorts between calls, allowing you to (for example) add a `UserId` restriction at the start of using a repo and be confident that restriction will apply to further operations.
 For this same reason it is imperative that each scope creates it's own instance of any repos for use, as sharing instances can cause 'bleeding' of sorts/filters across operations leading to unexpected results.
-(Repos are lightweight; the overhead is minimal and they can share a connection.)
+(Repos are lightweight; the overhead is minimal and instances can share a connection.)
 
 ``` go
 package main
@@ -197,25 +197,30 @@ func main() {
 
 	// Start a new repo and fetch the first 3 accounts in reverse email address order.
 	// These lines will not build if your database tables differ (they probably do).
+	fmt.Println("FIRST FEW ACCOUNTS")
 	ar := data.NewAccountRepo(conn)
-	d, err := ar.WhereId("<", 4).ReverseByEmailAddress().List()
-
-	// Show the result.
-	fmt.Println()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	fmt.Println("First few accounts:")
-	fmt.Println(d)
-	fmt.Println()
+	show(ar.WhereId("<", 4).ReverseByEmailAddress().List())
 
 	// Deal with a specific account, using a new repo to reset the filter/sort.
 	// Could also call ar.ResetConditions() and/or ar.ResetSorting() instead.
+	fmt.Println("FIND ACCOUNT")
 	ar = data.NewAccountRepo(conn)
-	acc, err := ar.WhereEmailAddress("=", "email@example.com").List()
-	if err == nil && len(acc) > 0 {
-		fmt.Printf("`%s` is for account %v", acc[0].EmailAddress, acc[0].Id)
+	show(ar.WhereEmailAddress("=", "email@example.com").List())
+
+	// Query a view. The repo will not contain any insert/update/delete code.
+	// Important: columns in views will always be nullable according to Postgres.
+	// This applies both for querying and for the results.
+	fmt.Println("QUERY A VIEW")
+	aar := data.NewActiveAccountRepo(conn)
+	notEmail := "email@example.com"
+	show(aar.WhereEmailAddress("<>", &notEmail).SortByDisplayName().List())
+}
+
+func show(data interface{}, err error) {
+	if err != nil {
+		log.Fatal(err.Error())
 	}
+	fmt.Println(data)
 	fmt.Println()
 }
 ```

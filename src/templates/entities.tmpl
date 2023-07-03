@@ -6,7 +6,9 @@
 package entities
 
 import (
+{{- if .IsUpdatable -}}
     "net/http"
+{{- end -}}
 {{ $usesTime := false -}}
 {{- range .Columns }}{{ if eq .DataType "*time.Time" }}{{- $usesTime = true -}}{{- end }}{{- end }}
 {{- if $usesTime }}
@@ -14,7 +16,9 @@ import (
 {{ end }}
 	pgx "github.com/jackc/pgx/v4"
 
+{{ if .IsUpdatable }}
 	"{{ ModuleName }}/support"
+{{ end }}
 )
 
 {{ TableComment . -}}
@@ -40,6 +44,7 @@ func New{{ .CodeName }}FromRows(rows pgx.Rows) (*{{ .CodeName }}, error) {
     return &d, err
 }
 
+{{ if .IsUpdatable }}
 // New{{ .CodeName }}FromPOST extracts a {{ .DisplayName }} from a POST request.
 //
 // This is intended mainly for CRUD admin screens.
@@ -85,4 +90,5 @@ func (item *{{ .CodeName }}) Validate() (issues []string) {
 {{ end -}}
     return issues
 }
+{{ end }}
 {{ end }}

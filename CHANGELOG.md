@@ -1,5 +1,13 @@
 # CHANGELOG
 
+- 2023-07-03
+  - Add support for views
+    - Postgres treats all view columns as nullable
+    - Omit insert/update/delete from generated code
+    - Not currently included in `postgres.sql` output
+  - Remove datestamp from most `DO NOT EDIT` preambles
+    - Avoids commit-churn on otherwise unchanged files
+    - File-system or commit timestamps should suffice
 - 2023-07-02
   - Extra notes on the usage display
   - Clearer and simpler command arguments
