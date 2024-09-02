@@ -7,7 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	pgx "github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
+	pgx "github.com/jackc/pgx/v5/pgxpool"
 )
 
 var bg = context.Background()
@@ -28,7 +29,7 @@ func NewScanner(connectionString string, schemaName string) scanner {
 }
 
 func (s *scanner) ScanPostgresDatabase() error {
-	db, err := pgx.Connect(bg, s.connectionString)
+	db, err := pgxpool.New(bg, s.connectionString)
 	check(err)
 	defer db.Close()
 	check(db.Ping(bg))

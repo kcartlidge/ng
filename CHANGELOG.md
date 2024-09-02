@@ -1,5 +1,10 @@
 # CHANGELOG
 
+- 2024-09-02
+  - Creates a `.editorconfig` file if one is missing
+  - Upgrades to using pgx v5
+  - Extra comments in the generated code
+  - Created repos are now in their own folder
 - 2023-07-03
   - Add support for views
     - Postgres treats all view columns as nullable

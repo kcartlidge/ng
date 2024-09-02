@@ -3,41 +3,41 @@
 {{ template "noedit" . -}}
 */
 
-package {{ RepoName }}
+package repos
 
 import (
-"errors"
-"fmt"
-"strings"
+	"errors"
+	"fmt"
+	"strings"
 
-pgx "github.com/jackc/pgx/v4"
+	pgx "github.com/jackc/pgx/v5"
 
-"{{ ModuleName }}/connection"
+	"{{ ModuleName }}/connection"
 )
 
 // repo represents a connection to the database for a single repo.
 type repo struct {
-connection *connection.Connection
-queryClause string
-queryValues  []interface{}
-orderClauses string
-limit, offset int
+	connection *connection.Connection
+	queryClause string
+	queryValues  []interface{}
+	orderClauses string
+	limit, offset int
 }
 
 // ExecuteNonQuery runs the repo with the supplied data and returns the count of affected rows.
 // If there is an error then the affected row count is returned as -1.
 func (r *repo) ExecuteNonQuery(cmd string, data ...interface{}) (int64, error) {
-r.connection.Debug("DB", cmd)
-r.connection.Debug("DB", data)
-d, err := r.connection.DB.Exec(connection.CTX, cmd, data...)
-if err == nil {
-ra := d.RowsAffected()
-if ra < 1 {
-err = errors.New(strings.TrimSpace("no affected rows"))
-}
-return ra, nil
-}
-return -1, err
+	r.connection.Debug("DB", cmd)
+	r.connection.Debug("DB", data)
+	d, err := r.connection.DB.Exec(connection.CTX, cmd, data...)
+	if err == nil {
+		ra := d.RowsAffected()
+		if ra < 1 {
+			err = errors.New(strings.TrimSpace("no affected rows"))
+		}
+		return ra, nil
+	}
+	return -1, err
 }
 
 // Execute runs the query against the repo.
@@ -47,53 +47,26 @@ return -1, err
 // This is intended for general purpose queries.
 // If you are fetching specific entities use the strongly-typed methods instead.
 func (r *repo) Execute(cmd string, callback func(rows pgx.Rows) error) error {
-cmd += r.getQuery()
-cmd += r.getOrdering()
-cmd += r.getLimitAndOffset()
-r.connection.Debug("DB", cmd)
-rows, err := r.connection.DB.Query(connection.CTX, cmd, r.queryValues...)
-defer rows.Close()
-if err == nil {
-read := 0
-for rows.Next() {
-if err = callback(rows); err != nil {
-return err
-}
-read++
-if read >= connection.MaxRows {
-break
-}
-}
-rows.Close()
-}
-return err
-}
-
-func (r *repo) getQuery() string {
-cmd := ""
-if r.hasConditions() {
-cmd += r.queryClause
-}
-return cmd
-}
-
-func (r *repo) getOrdering() string {
-return r.orderClauses
-}
-
-func (r *repo) getLimitAndOffset() string {
-cmd := ""
-if r.limit > 0 {
-cmd += fmt.Sprintf(" LIMIT %v ", r.limit)
-}
-if r.offset > 0 {
-cmd += fmt.Sprintf(" OFFSET %v ", r.offset)
-}
-return cmd
-}
-
-func (r *repo) hasConditions() bool {
-return len(r.queryClause) > 0 && len(r.queryValues) > 0
+	cmd += r.getQuery()
+	cmd += r.getOrdering()
+	cmd += r.getLimitAndOffset()
+	r.connection.Debug("DB", cmd)
+	rows, err := r.connection.DB.Query(connection.CTX, cmd, r.queryValues...)
+	defer rows.Close()
+	if err == nil {
+		read := 0
+		for rows.Next() {
+			if err = callback(rows); err != nil {
+				return err
+			}
+			read++
+			if read >= connection.MaxRows {
+				break
+			}
+		}
+		rows.Close()
+	}
+	return err
 }
 
 // ResetConditions removes any applied conditions.
@@ -113,33 +86,69 @@ r.limit = -1
 r.offset = -1
 }
 
+/* Internal helpers. */
+
+// addCondition adds a general filter. Whilst it can be anything, the individual
+// repos decide what to expose.
 func (r *repo) addCondition(thing string, operator string, value interface{}) {
-if len(thing) > 0 && len(operator) > 0 {
-if len(r.queryClause) == 0 {
-r.queryClause = " WHERE "
-r.queryValues = []interface{}{}
-} else {
-r.queryClause += " AND "
-}
-i := len(r.queryValues) + 1
-r.queryClause += fmt.Sprintf("%s %s $%v", thing, strings.ToUpper(operator), i)
-r.queryValues = append(r.queryValues, value)
-}
+	if len(thing) > 0 && len(operator) > 0 {
+		if len(r.queryClause) == 0 {
+			r.queryClause = " WHERE "
+			r.queryValues = []interface{}{}
+		} else {
+			r.queryClause += " AND "
+		}
+		i := len(r.queryValues) + 1
+		r.queryClause += fmt.Sprintf("%s %s $%v", thing, strings.ToUpper(operator), i)
+		r.queryValues = append(r.queryValues, value)
+	}
 }
 
+// addOrdering adds a general sort. Whilst it can be anything, the individual
+// repos decide what to expose.
 func (r *repo) addOrdering(thing string, descending bool) *repo {
-if len(thing) > 0 {
-if len(r.orderClauses) == 0 {
-r.orderClauses = " ORDER BY "
-} else {
-r.orderClauses += ", "
-}
-r.orderClauses += thing
-if descending {
-r.orderClauses += " DESC"
-}
-}
-return r
+	if len(thing) > 0 {
+		if len(r.orderClauses) == 0 {
+			r.orderClauses = " ORDER BY "
+		} else {
+			r.orderClauses += ", "
+		}
+		r.orderClauses += thing
+		if descending {
+			r.orderClauses += " DESC"
+		}
+	}
+	return r
 }
 
+// getQuery returns any filters.
+func (r *repo) getQuery() string {
+	cmd := ""
+	if r.hasConditions() {
+		cmd += r.queryClause
+	}
+	return cmd
+}
+
+// getOrdering returns any sorts.
+func (r *repo) getOrdering() string {
+	return r.orderClauses
+}
+
+// getLimitAndOffset returns SQL snippets for limit and offset.
+func (r *repo) getLimitAndOffset() string {
+	cmd := ""
+	if r.limit > 0 {
+		cmd += fmt.Sprintf(" LIMIT %v ", r.limit)
+	}
+	if r.offset > 0 {
+		cmd += fmt.Sprintf(" OFFSET %v ", r.offset)
+	}
+	return cmd
+}
+
+// hasConditions returns true if there are any filters.
+func (r *repo) hasConditions() bool {
+	return len(r.queryClause) > 0 && len(r.queryValues) > 0
+}
 {{- end }}

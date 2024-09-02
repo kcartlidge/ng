@@ -33,6 +33,7 @@ func DateTimeFromPOST(r *http.Request, fieldName string, errs []error) *time.Tim
 }
 
 // Int64NullableFromPOST returns 0 if the conversion fails.
+// It returns nil if no value was provided.
 func Int64NullableFromPOST(r *http.Request, fieldName string, errs []error) *int64 {
 	value := r.PostForm.Get(fieldName)
 	if len(value) == 0 {
@@ -54,6 +55,7 @@ func Int64FromPOST(r *http.Request, fieldName string, errs []error) int64 {
 }
 
 // IntNullableFromPOST returns 0 if the conversion fails.
+// It returns nil if no value was provided.
 func IntNullableFromPOST(r *http.Request, fieldName string, errs []error) *int {
 	value := r.PostForm.Get(fieldName)
 	if len(value) == 0 {
@@ -75,6 +77,7 @@ func IntFromPOST(r *http.Request, fieldName string, errs []error) int {
 }
 
 // Float64NullableFromPOST returns 0 if the conversion fails.
+// It returns nil if no value was provided.
 func Float64NullableFromPOST(r *http.Request, fieldName string, errs []error) *float64 {
 	value := r.PostForm.Get(fieldName)
 	if len(value) == 0 {
@@ -96,6 +99,7 @@ func Float64FromPOST(r *http.Request, fieldName string, errs []error) float64 {
 }
 
 // StringNullableFromPOST returns "" if the conversion fails.
+// It returns nil if no value was provided.
 func StringNullableFromPOST(r *http.Request, fieldName string, errs []error) *string {
 	value := r.PostForm.Get(fieldName)
 	if len(value) == 0 {
@@ -111,6 +115,7 @@ func StringFromPOST(r *http.Request, fieldName string, errs []error) string {
 }
 
 // BoolNullableFromPOST returns false if the conversion fails.
+// It returns nil if no value was provided.
 func BoolNullableFromPOST(r *http.Request, fieldName string, errs []error) *bool {
 	value := r.PostForm.Get(fieldName)
 	if len(value) == 0 {

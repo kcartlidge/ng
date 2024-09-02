@@ -10,7 +10,7 @@ import (
     "log"
 	"{{ ModuleName }}/support"
 
-	pgx "github.com/jackc/pgx/v4/pgxpool"
+	pgx "github.com/jackc/pgx/v5/pgxpool"
 )
 
 var (
@@ -31,7 +31,7 @@ func NewConnection(connectionString string) *Connection {
     c := Connection{}
     c.Debug("DB", "Connecting")
     c.connectionString = connectionString
-	ndb, err := pgx.Connect(CTX, connectionString)
+	ndb, err := pgx.New(CTX, connectionString)
     support.Check(err)
     err = ndb.Ping(CTX)
     support.Check(err)

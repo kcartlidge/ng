@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -15,12 +14,12 @@ import (
 const verbose = false
 
 type writer struct {
-	topFolder, entityFolder, repoFolder string
-	connectionFolder, supportFolder     string
-	schema                              Schema
-	commandLine, module, repoName       string
-	connectionStringEnvArg              string
-	goFilesWritten                      []string
+	topFolder, entityFolder, repoFolder          string
+	reposFolder, connectionFolder, supportFolder string
+	schema                                       Schema
+	commandLine, module, repoName                string
+	connectionStringEnvArg                       string
+	goFilesWritten                               []string
 }
 
 func NewWriter(
@@ -34,6 +33,7 @@ func NewWriter(
 		topFolder:              path.Clean(folder),
 		entityFolder:           path.Join(folder, repoName, "entities"),
 		repoFolder:             path.Join(folder, repoName),
+		reposFolder:            path.Join(folder, repoName, "repos"),
 		connectionFolder:       path.Join(folder, repoName, "connection"),
 		supportFolder:          path.Join(folder, repoName, "support"),
 		module:                 module,
@@ -49,6 +49,7 @@ func NewWriter(
 func (w writer) WriteStuff() {
 	w.clearOutputFolder()
 	w.createOutputFolders()
+	w.createEditorConfigIfNotExists()
 	w.createDumpFile()
 
 	w.createSupportFile()
@@ -63,12 +64,17 @@ func (w writer) WriteStuff() {
 	w.applyFormatting()
 }
 
+// clearOutputFolder removes files and folders within the output folder.
+// It doesn't remove a pre-existing output folder itself as depending
+// upon the OS that can leave existing terminal/command sessions in that
+// folder seeming okay but actually working against the original folder
+// in the trash (which can go unnoticed).
 func (w *writer) clearOutputFolder() {
 	exists, err := Exists(w.repoFolder)
 	check(err)
 	if exists {
 		fmt.Println("Clearing target folder")
-		files, err := ioutil.ReadDir(w.repoFolder)
+		files, err := os.ReadDir(w.repoFolder)
 		check(err)
 		for _, f := range files {
 			p := path.Join(w.repoFolder, f.Name())
@@ -90,12 +96,21 @@ func (w *writer) createOutputFolders() {
 	check(os.MkdirAll(w.entityFolder, 0755))
 	check(os.MkdirAll(w.connectionFolder, 0755))
 	check(os.MkdirAll(w.repoFolder, 0755))
+	check(os.MkdirAll(w.reposFolder, 0755))
+}
+
+func (w *writer) createEditorConfigIfNotExists() {
+	filename := path.Join(w.topFolder, ".editorconfig")
+	if exists, err := Exists(filename); err == nil && !exists {
+		fmt.Println("Adding missing editorconfig")
+		w.writeFile(filename, "editorconfig", nil)
+	}
 }
 
 func (w *writer) createDumpFile() {
 	fmt.Println("Writing JSON dump file")
 	filename := path.Join(w.repoFolder, "dump.json")
-	check(ioutil.WriteFile(filename, w.schema.ToJSON(), fs.ModePerm))
+	check(os.WriteFile(filename, w.schema.ToJSON(), fs.ModePerm))
 }
 
 func (w *writer) createSupportFile() {
@@ -128,15 +143,15 @@ func (w *writer) createConnection() {
 }
 
 func (w *writer) createRepo() {
-	fmt.Println("Creating repo")
-	filename := path.Join(w.repoFolder, "repo-base.go")
+	fmt.Println("Creating base repo")
+	filename := path.Join(w.reposFolder, "repo-base.go")
 	w.writeGoFile(filename, "repo-base", nil)
 }
 
 func (w *writer) createEntityRepos() {
 	fmt.Println("Adding entity repos")
 	for _, table := range w.schema.Tables {
-		filename := path.Join(w.repoFolder, table.SlugName+"-repo.go")
+		filename := path.Join(w.reposFolder, table.SlugName+"-repo.go")
 		w.writeGoFile(filename, "repos", table)
 	}
 }
@@ -199,5 +214,5 @@ func (w *writer) writeGoFile(filename string, templateName string, data interfac
 
 func (w *writer) writeFile(filename string, templateName string, data interface{}) {
 	b := w.getTemplatedData(data, templateName)
-	check(ioutil.WriteFile(filename, b, fs.ModePerm))
+	check(os.WriteFile(filename, b, fs.ModePerm))
 }

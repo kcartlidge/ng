@@ -143,15 +143,16 @@ Here's a high-level breakdown of what the files/folders contain, based on the ex
       account-setting.go       // the 'account_setting' db table
       account.go               // the 'account' db table
       setting.go               // the 'setting' db table
+    /repos
+      account-repo.go          // the 'account' repository
+      account-setting-repo.go  // the 'account-setting' repository
+      repo-base.go             // shared repository functionality
+      setting-repo.go          // the 'setting' repository
     /support
       support.go               // support functions
-    account-repo.go            // the 'account' repository
-    account-setting-repo.go    // the 'account-setting' repository
     dump.json                  // JSON dump of the schema
     postgres.sql               // SQL to recreate the entities
     README.md                  // overview of the generated code
-    repo-base.go               // shared repository functionality
-    setting-repo.go            // the 'setting' repository
     USING.md                   // details of how to use the code
 ```
 
@@ -175,53 +176,85 @@ For this same reason it is imperative that each scope creates it's own instance 
 package main
 
 import (
-	"fmt"
-	"kcartlidge/app/data"
-	"kcartlidge/app/data/connection"
-	"log"
-	"os"
+    "fmt"
+    "kcartlidge/app/data/connection"
+    "kcartlidge/app/data/entities"
+    "kcartlidge/app/data/repos"
+    "log"
+    "os"
+    "time"
 )
 
 func main() {
-	// Limit queries to 100 rows for performance/scalability.
-	// This can be overridden on individual calls.
-	connection.MaxRows = 100
+    // Limit queries to 100 rows for performance/scalability.
+    // This can be overridden on individual calls.
+    connection.MaxRows = 100
 
-	// Connect using the connection string in the "DB_CONNSTR" environment variable.
-	envName := "DB_CONNSTR"
-	connectionString, hasEnv := os.LookupEnv(envName)
-	if !hasEnv {
-		log.Fatalf("Environment variable `%s` not found", envName)
-	}
-	conn := connection.NewConnection(connectionString)
+    // This shows SQL statements on the console.
+    connection.DebugMode = true
 
-	// Start a new repo and fetch the first 3 accounts in reverse email address order.
-	// These lines will not build if your database tables differ (they probably do).
-	fmt.Println("FIRST FEW ACCOUNTS")
-	ar := data.NewAccountRepo(conn)
-	show(ar.WhereId("<", 4).ReverseByEmailAddress().List())
+    // Connect using the connection string in the "DB_CONNSTR" environment variable.
+    // This will exit if no connection is possible.
+    envName := "DB_CONNSTR"
+    connectionString, hasEnv := os.LookupEnv(envName)
+    if !hasEnv {
+        log.Fatalf("Environment variable `%s` not found", envName)
+    }
+    conn := connection.NewConnection(connectionString)
+    accounts := repos.NewAccountRepo(conn)
 
-	// Deal with a specific account, using a new repo to reset the filter/sort.
-	// Could also call ar.ResetConditions() and/or ar.ResetSorting() instead.
-	fmt.Println("FIND ACCOUNT")
-	ar = data.NewAccountRepo(conn)
-	show(ar.WhereEmailAddress("=", "email@example.com").List())
+    // Check if we've already created the test account. If not, add it.
+    exists, err := accounts.WhereEmailAddress("=", "email@example.com").List()
+    if err == nil && len(exists) == 0 {
+        now := time.Now().UTC()
+        _, err = accounts.Insert(entities.Account{
+            EmailAddress: "email@example.com",
+            DisplayName:  "Example",
+            CreatedAt:    &now,
+            UpdatedAt:    &now,
+            DeletedAt:    nil,
+        })
+    }
+    if err != nil {
+        log.Fatalln(err.Error())
+    }
 
-	// Query a view. The repo will not contain any insert/update/delete code.
-	// Important: columns in views will always be nullable according to Postgres.
-	// This applies both for querying and for the results.
-	fmt.Println("QUERY A VIEW")
-	aar := data.NewActiveAccountRepo(conn)
-	notEmail := "email@example.com"
-	show(aar.WhereEmailAddress("<>", &notEmail).SortByDisplayName().List())
+    // Start a new repo and fetch the first 3 accounts in reverse email address order.
+    // Obviously we've only created one, but remember that this is example code.
+    // These lines will not build if your database tables differ (they probably do).
+    fmt.Println("FIRST FEW ACCOUNTS")
+    show(accounts.
+        WhereId("<", 4).
+        ReverseByEmailAddress().
+        List())
+
+    // Deal with a specific account, using a new repo to reset the filter/sort.
+    // Could also call accounts.ResetConditions() and/or accounts.ResetSorting() instead.
+    fmt.Println("FIND ACCOUNT")
+    accounts = repos.NewAccountRepo(conn)
+    show(accounts.
+        WhereEmailAddress("=", "email@example.com").
+        List())
+
+    // Query a view. The repo will not contain any insert/update/delete code.
+    // Important: columns in views will always be nullable according to Postgres.
+    // This applies both for querying and for the results.
+    fmt.Println("QUERY A VIEW")
+    activeAccounts := repos.NewActiveAccountRepo(conn)
+    notEmail := "email@example.com"
+    show(activeAccounts.
+        WhereEmailAddress("<>", &notEmail).
+        SortByDisplayName().
+        List())
 }
 
+// show displays the data or exists if there's an error.
 func show(data interface{}, err error) {
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	fmt.Println(data)
-	fmt.Println()
+    if err != nil {
+        log.Fatal(err.Error())
+    }
+    fmt.Println(data)
+    fmt.Println()
 }
 ```
 
@@ -230,6 +263,8 @@ If you want to see the database operations, including the SQL that was generated
 ``` go
 connection.DebugMode = true
 ```
+
+---
 
 ## Building cross-platform binaries
 
@@ -244,6 +279,25 @@ Linux/Mac:
 cd src
 ./scripts/macos.sh
 ./scripts/linux.sh
+```
+
+Windows:
+
+``` shell
+cd src
+scripts\windows.bat
+```
+
+## Generating local builds during development
+
+You can also do one-off local builds and run them.
+Change the paths and output executables as necessary in the following in order to reflect *your current* platform.
+
+Linux/Mac:
+
+``` shell
+cd src
+go build -o builds/macos-arm/ng && ./builds/macos-arm/ng -env DB_CONNSTR -schema example -module kcartlidge/ng-test -folder ../../ng-test -repo Data -w
 ```
 
 Windows:
