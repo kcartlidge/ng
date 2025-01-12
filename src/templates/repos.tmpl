@@ -158,6 +158,19 @@ func (r *{{ $codename }}Repo) Where{{ .CodeName }}(operator string, value {{ .Da
 {{ end }}
 
 
+// ---------- Null-check filtering (only nullable fields) ----------
+
+{{- range .Columns }}
+{{ if .IsNullable }}
+// Where{{ .CodeName }}IsNull adds a NULL check filter for {{ .DisplayName }}.
+func (r *{{ $codename }}Repo) Where{{ .CodeName }}IsNull(isTrue bool) *{{ $codename }}Repo {
+	r.addNullCheck("{{ .ColumnName }}", isTrue)
+	return r
+}
+{{ end }}
+{{ end }}
+
+
 // ----------- Typed ordering (only indexed fields for tables) -----------
 
 {{- range .Columns }}

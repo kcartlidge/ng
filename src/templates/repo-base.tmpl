@@ -20,6 +20,7 @@ type repo struct {
 	connection *connection.Connection
 	queryClause string
 	queryValues  []interface{}
+	nullChecks    map[string]bool
 	orderClauses string
 	limit, offset int
 }
@@ -48,6 +49,7 @@ func (r *repo) ExecuteNonQuery(cmd string, data ...interface{}) (int64, error) {
 // If you are fetching specific entities use the strongly-typed methods instead.
 func (r *repo) Execute(cmd string, callback func(rows pgx.Rows) error) error {
 	cmd += r.getQuery()
+	cmd += r.getNullChecks()
 	cmd += r.getOrdering()
 	cmd += r.getLimitAndOffset()
 	r.connection.Debug("DB", cmd)
@@ -73,6 +75,7 @@ func (r *repo) Execute(cmd string, callback func(rows pgx.Rows) error) error {
 func (r *repo) ResetConditions() {
 r.queryClause = ""
 r.queryValues = []interface{}{}
+r.nullChecks = make(map[string]bool)
 }
 
 // ResetSorting removes any applied sorting.
@@ -87,6 +90,13 @@ r.offset = -1
 }
 
 /* Internal helpers. */
+
+// addNullCheck adds a general NULL check.
+func (r *repo) addNullCheck(thing string, isTrue bool) {
+	if len(thing) > 0 {
+		r.nullChecks[thing] = isTrue
+	}
+}
 
 // addCondition adds a general filter. Whilst it can be anything, the individual
 // repos decide what to expose.
@@ -126,6 +136,28 @@ func (r *repo) getQuery() string {
 	cmd := ""
 	if r.hasConditions() {
 		cmd += r.queryClause
+	}
+	return cmd
+}
+
+// getNullChecks returns any NULL checks.
+func (r *repo) getNullChecks() string {
+	cmd := ""
+	if len(r.nullChecks) > 0 {
+		i := 0
+		for thing, isTrue := range r.nullChecks {
+			if r.hasConditions() || i > 0 {
+				cmd += " AND "
+			} else {
+				cmd += " WHERE "
+			}
+			if isTrue {
+				cmd += fmt.Sprintf("%s IS NULL", thing)
+			} else {
+				cmd += fmt.Sprintf("%s IS NOT NULL", thing)
+			}
+			i++
+		}
 	}
 	return cmd
 }

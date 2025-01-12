@@ -1,4 +1,4 @@
-# Near Gothic
+# Near Gothic v1.2.0
 
 Generate strongly-typed Go database access code directly from your Postgres database schema.
 
@@ -119,6 +119,9 @@ You get a folder structure with the following:
   - Validation based on SQL column length
 - A connection package
 - A package of strongly-typed repositories
+  - Includes typed querying based on column details
+  - Typed sorting for indexed columns (untyped support for unindexed ones)
+  - Typed null checks for nullable fields
 - A `README.md` detailing what the repo contains
 - A `USING.md` detailing how to use the repo
 - An emergency SQL script to recreate the entities
@@ -225,6 +228,7 @@ func main() {
     fmt.Println("FIRST FEW ACCOUNTS")
     show(accounts.
         WhereId("<", 4).
+        WhereEmailAddressIsNull(false).
         ReverseByEmailAddress().
         List())
 
@@ -287,6 +291,8 @@ Windows:
 cd src
 scripts\windows.bat
 ```
+
+When you do new builds update the version number in this file's title and in `main.go`.
 
 ## Generating local builds during development
 

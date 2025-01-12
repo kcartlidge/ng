@@ -15,7 +15,7 @@ func main() {
 
 	// Intro.
 	fmt.Println()
-	fmt.Println("NEAR GOTHIC")
+	fmt.Println("NEAR GOTHIC v1.2.0")
 	fmt.Println("Generate Golang repository code directly from Postgres")
 	fmt.Println()
 

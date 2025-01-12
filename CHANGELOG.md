@@ -1,5 +1,8 @@
 # CHANGELOG
 
+- 2025-01-12
+  - Strip question marks from comments
+  - Support NULL checks for nullable columns
 - 2024-09-02
   - Creates a `.editorconfig` file if one is missing
   - Upgrades to using pgx v5

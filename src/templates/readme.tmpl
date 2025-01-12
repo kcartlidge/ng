@@ -57,6 +57,8 @@ Each entity also has methods to:
       - Descending, e.g. `ReverseByEntryCount()`
   - General purpose sorting and filtering (only intended for *unindexed* column usage)
     - `Where` adds a clause to the request
+    - `Where...IsNull(bool)` adds a NULL check clause to the request
+      - Added for all nullable columns
     - `AddSorting` adds an ad-hoc sort by any valid column/thing
 
 ## SQL Scripts

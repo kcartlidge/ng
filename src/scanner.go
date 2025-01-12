@@ -76,7 +76,7 @@ func (s *scanner) scanTablesAndViews(db *pgx.Pool) {
 			SlugName:          toSlug(tableName),
 			SlugNamePlural:    toPlural(toSlug(tableName)),
 			Owner:             s.SchemaName,
-			Comment:           strings.TrimSpace(comment.String),
+			Comment:           strings.TrimSpace(strings.ReplaceAll(comment.String, "?", "")),
 			TableType:         tableType,
 			IsUpdatable:       strings.ToLower(canInsert) == "yes",
 			Columns:           s.scanColumns(db, tableName, strings.ToUpper(tableType) == "VIEW"),
